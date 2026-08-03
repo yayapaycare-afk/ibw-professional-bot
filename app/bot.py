@@ -287,21 +287,22 @@ async def ensure_user(message: Message):
 
 
 async def welcome_caption(first_name: str) -> str:
-    working = await setting_value("working_hours", "10:00 AM – 9:30 PM")
+    working = await setting_value("working_hours", "10:00 AM – 09:30 PM")
     available = (await setting_value("service_available", "true")).lower() == "true"
-    status = "Available" if available else "Unavailable"
-    status_icon = "✅" if available else "❌"
+    system_status = "🟢 ONLINE (Active)" if available else "🔴 OFFLINE (Unavailable)"
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
     return (
-        "🏦 <b>INDIA BUSINESS WALLETS</b>\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        f"👋 Hello {html.escape(first_name)}\n\n"
-        f"{status_icon} <b>Service:</b> {status}\n"
-        f"🕙 <b>Time:</b> {html.escape(working)}\n"
+        "🏛 <b>Welcome to IBW Bot</b>\n"
+        "──────────────────────────────\n"
+        f"👋 Hi {html.escape(first_name)},\n"
+        "Welcome to our official Bot.\n\n"
+        "🔐 Trusted Business Wallets opening Online services across India 🇮🇳\n\n"
+        f"<b>System Status:</b> {system_status}\n"
+        f"⏰ <b>Working Hours:</b> {html.escape(working)}\n"
         f"📅 <b>Date:</b> {today}\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        "📌 आवेदन से पहले <b>Terms & Conditions</b> पढ़ें।\n"
-        "👇 नीचे से सेवा चुनें"
+        "──────────────────────────────\n"
+        "📋 <b>Notice:</b> Proceed karne se pehle Terms zaroor padhein 🔞\n\n"
+        "Services select karne ke liye niche click karein:👇"
     )
 
 
