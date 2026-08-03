@@ -281,31 +281,31 @@ async def welcome_caption(first_name: str) -> str:
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
     return (
         f"👋 <b>Hello {html.escape(first_name)}!</b>\n\n"
-        "📌 Application शुरू करने से पहले <b>Terms & Conditions</b> जरूर पढ़ें।\n\n"
         f"🏦 <b>{html.escape(settings.business_name)}</b>\n"
-        "Business Wallet Application & Tracking\n\n"
-        "🕙 <b>Working Hours</b>\n"
-        f"{html.escape(working)}\n\n"
-        f"{status}\n"
+        f"{status}\n\n"
+        f"🕙 {html.escape(working)}\n"
         f"📅 {today}\n\n"
-        "नीचे दिए गए विकल्पों में से चुनें 👇"
+        "📌 आवेदन शुरू करने से पहले <b>Terms & Conditions</b> जरूर पढ़ें।"
     )
 
 
 async def send_home(target: Message):
     dashboard_text = await welcome_caption(target.chat.first_name or "User")
 
-    # Send the welcome artwork separately so Telegram does not stretch the
-    # dashboard into one oversized photo caption.
+    # A compact wide banner and short caption are kept in one Telegram card.
     if os.path.exists(settings.welcome_image_path):
-        await target.answer_photo(FSInputFile(settings.welcome_image_path))
-
-    # Keep the dashboard compact, readable and independent from the image.
-    await target.answer(
-        dashboard_text,
-        reply_markup=main_menu(),
-        parse_mode=ParseMode.HTML,
-    )
+        await target.answer_photo(
+            FSInputFile(settings.welcome_image_path),
+            caption=dashboard_text,
+            reply_markup=main_menu(),
+            parse_mode=ParseMode.HTML,
+        )
+    else:
+        await target.answer(
+            dashboard_text,
+            reply_markup=main_menu(),
+            parse_mode=ParseMode.HTML,
+        )
 
 
 @router.message(CommandStart())
