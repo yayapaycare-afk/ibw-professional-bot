@@ -1,1 +1,67 @@
-{% extends 'base.html' %}{% block content %}<h1>Dashboard</h1><div class='grid'><div class='card'><h2>{{counts.applications}}</h2><span>Total Applications</span></div><div class='card'><h2>{{counts.pending}}</h2><span>Payment Pending</span></div><div class='card'><h2>{{counts.wallets}}</h2><span>Wallet Services</span></div></div><div class='card'><h2>Recent Applications</h2><table><tr><th>ID</th><th>User</th><th>Wallet</th><th>Status</th><th></th></tr>{% for a,w,u in apps %}<tr><td>{{a.application_id or 'Draft'}}</td><td>{{u.full_name}}</td><td>{{w.name}}</td><td>{{a.status}}</td><td><a class='btn' href='/admin/application/{{a.id}}'>Open</a></td></tr>{% endfor %}</table></div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Dashboard - IBW Admin{% endblock %}
+
+{% block content %}
+<h1>Admin Dashboard</h1>
+<p class="muted">Manage applications, wallets and payment verification.</p>
+
+<div class="grid">
+    <div class="card">
+        <h2 class="stat-number">{{ counts.applications | default(0) }}</h2>
+        <p class="stat-label">Total Applications</p>
+    </div>
+
+    <div class="card">
+        <h2 class="stat-number">{{ counts.pending | default(0) }}</h2>
+        <p class="stat-label">Pending Applications</p>
+    </div>
+
+    <div class="card">
+        <h2 class="stat-number">{{ counts.wallets | default(0) }}</h2>
+        <p class="stat-label">Wallet Services</p>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent Applications</h2>
+
+    {% if apps %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Application ID</th>
+                    <th>User</th>
+                    <th>Wallet</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for application, wallet, user in apps %}
+                <tr>
+                    <td>{{ application.application_id or "Draft" }}</td>
+                    <td>{{ user.full_name or "Unknown User" }}</td>
+                    <td>{{ wallet.name or "Unknown Wallet" }}</td>
+                    <td>
+                        <span class="status">
+                            {{ application.status or "Pending" }}
+                        </span>
+                    </td>
+                    <td>
+                        <a class="btn" href="/admin/application/{{ application.id }}">
+                            Open
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="muted">No applications have been submitted yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
