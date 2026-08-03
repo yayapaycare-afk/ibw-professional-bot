@@ -8,7 +8,7 @@ from urllib.parse import quote
 from zoneinfo import ZoneInfo
 
 from aiogram import Bot, Dispatcher, F, Router
-from aiogram.enums import ParseMode
+from aiogram.enums import ParseMode, ChatType
 from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -21,7 +21,15 @@ from app.db import Session, setting_value
 from app.models import User, Wallet, DocumentRule, Application, Submission, FinalPayment, Rating
 
 settings = get_settings()
-router = Router()
+group_router = Router(name="group_privacy")
+router = Router(name="private_bot")
+
+group_router.message.filter(F.chat.type.in_({ChatType.GROUP, ChatType.SUPERGROUP}))
+group_router.callback_query.filter(F.message.chat.type.in_({ChatType.GROUP, ChatType.SUPERGROUP}))
+
+# All application and payment handlers are private-chat only.
+router.message.filter(F.chat.type == ChatType.PRIVATE)
+router.callback_query.filter(F.message.chat.type == ChatType.PRIVATE)
 
 TERMS_TEXT = """📜 नियम एवं शर्तें — India Business Wallets
 
@@ -62,6 +70,171 @@ Kripya yah terms
 🚫 धोखाधड़ी से सावधान रहें
 
 ✅ Service का उपयोग करने पर यह माना जाएगा कि आपने सभी नियम एवं शर्तें ध्यानपूर्वक पढ़ ली हैं और उनसे सहमत हैं।"""
+
+GROUP_PRIVACY_TEXT = """🔐 <b>Privacy & Security Notice</b>
+
+कृपया अपने Documents या व्यक्तिगत जानकारी इस Group में साझा न करें।
+
+इस Group में अन्य सदस्य मौजूद हैं। Aadhaar Card, PAN Card, Bank Details, Mobile Number और Payment Receipt केवल Bot की Private Chat में submit करें।
+
+नीचे दिए गए button से Bot को privately खोलकर अपनी Application पूरी करें।
+
+⚠️ OTP, UPI PIN, Password या Card PIN कभी साझा न करें।"""
+
+GROUP_UPLOAD_WARNING = """⚠️ <b>Documents Group में न भेजें</b>
+
+आपकी Privacy और Security के लिए सभी Documents केवल Bot की Private Chat में submit किए जाते हैं।
+
+नीचे दिए गए button से Bot को privately खोलें।"""
+
+
+async def private_bot_keyboard(bot: Bot, label: str = "🔒 Open Bot Privately") -> InlineKeyboardMarkup:
+    me = await bot.get_me()
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=label, url=f"https://t.me/{me.username}?start=private")],
+    ])
+
+
+async def group_main_menu(bot: Bot) -> InlineKeyboardMarkup:
+    me = await bot.get_me()
+    private_url = f"https://t.me/{me.username}?start=private"
+    channel_url = settings.official_channel or "https://t.me/"
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📝 Apply for Business Wallet", callback_data="g:apply")],
+        [InlineKeyboardButton(text="🔍 Track Application", url=private_url), InlineKeyboardButton(text="📂 My Applications", url=private_url)],
+        [InlineKeyboardButton(text="💬 Contact Support", url=private_url), InlineKeyboardButton(text="📜 Terms & Conditions", callback_data="g:terms")],
+        [InlineKeyboardButton(text="📢 Official Channel", url=channel_url)],
+    ])
+
+
+async def send_group_dashboard(message: Message, bot: Bot) -> None:
+    working = await setting_value("working_hours", "10:00 AM – 9:30 PM")
+    available = (await setting_value("service_available", "true")).lower() == "true"
+    status = "✅ Service Available" if available else "❌ Service Not Available"
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
+    text = (
+        "🏦 <b>India Business Wallets</b>\n"
+        "Business Wallet Application & Tracking\n\n"
+        "📌 पहले Terms & Conditions पढ़ें, फिर Application शुरू करें।\n\n"
+        f"🕙 <b>Working Hours:</b> {html.escape(working)}\n"
+        f"{status}\n"
+        f"📅 {today}\n\n"
+        "नीचे दिए गए button से जानकारी देखें 👇"
+    )
+    await message.answer(text, reply_markup=await group_main_menu(bot), parse_mode=ParseMode.HTML)
+
+
+async def send_group_privacy_notice(message: Message, bot: Bot, short: bool = False) -> None:
+    mention = f'<a href="tg://user?id={message.from_user.id}">{html.escape(message.from_user.first_name or "User")}</a>' if message.from_user else "User"
+    text = GROUP_UPLOAD_WARNING if short else GROUP_PRIVACY_TEXT
+    await message.answer(
+        f"{mention}\n\n{text}",
+        reply_markup=await private_bot_keyboard(bot),
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True,
+    )
+
+
+@group_router.message(F.new_chat_members)
+async def bot_added_to_group(message: Message, bot: Bot):
+    if any(member.id == bot.id for member in message.new_chat_members):
+        await message.answer(
+            "👋 <b>India Business Wallets Bot group में जुड़ गया है.</b>\n\n"
+            "यहाँ सभी सदस्य Wallet services, fees और Terms देख सकते हैं। "
+            "Documents और निजी जानकारी केवल Bot की Private Chat में submit करें।",
+            reply_markup=await group_main_menu(bot),
+            parse_mode=ParseMode.HTML,
+        )
+
+
+@group_router.message(CommandStart())
+async def group_start(message: Message, bot: Bot):
+    await send_group_dashboard(message, bot)
+
+
+@group_router.message(F.photo | F.document)
+async def group_document_guard(message: Message, bot: Bot):
+    try:
+        await message.delete()
+    except Exception:
+        pass
+    await send_group_privacy_notice(message, bot, short=True)
+
+
+@group_router.callback_query(F.data == "g:apply")
+async def group_apply(callback: CallbackQuery, bot: Bot):
+    async with Session() as session:
+        wallets = (await session.scalars(select(Wallet).where(Wallet.active.is_(True)).order_by(Wallet.sort_order, Wallet.id))).all()
+    if not wallets:
+        await callback.message.answer("Abhi koi wallet service available nahi hai.")
+    else:
+        rows = [[InlineKeyboardButton(text=f"🏦 {w.name}", callback_data=f"g:wallet:{w.id}")] for w in wallets]
+        rows.append([InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")])
+        await callback.message.answer("🏦 <b>Select a Business Wallet</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=rows), parse_mode=ParseMode.HTML)
+    await callback.answer()
+
+
+@group_router.callback_query(F.data.startswith("g:wallet:"))
+async def group_wallet_details(callback: CallbackQuery, bot: Bot):
+    wallet_id = int(callback.data.rsplit(":", 1)[1])
+    async with Session() as session:
+        wallet = await session.get(Wallet, wallet_id)
+        docs = (await session.scalars(select(DocumentRule).where(DocumentRule.wallet_id == wallet_id).order_by(DocumentRule.sort_order, DocumentRule.id))).all()
+    if not wallet or not wallet.active:
+        await callback.answer("Wallet unavailable.", show_alert=True)
+        return
+    due = round(wallet.total_fee * wallet.initial_percent / 100)
+    remaining = max(wallet.total_fee - due, 0)
+    doc_lines = "\n".join(f"• {html.escape(d.name)}" for d in docs) or "• Admin has not added documents yet"
+    me = await bot.get_me()
+    private_url = f"https://t.me/{me.username}?start=private"
+    text = (
+        f"🏦 <b>{html.escape(wallet.name)}</b>\n\n"
+        f"{html.escape(wallet.description or '')}\n\n"
+        f"📄 <b>Required Documents</b>\n{doc_lines}\n\n"
+        f"💰 Total Fee: ₹{wallet.total_fee}\n"
+        f"💳 First Payment: {wallet.initial_percent}% — ₹{due}\n"
+        f"🏷 Banking Name: {html.escape(wallet.banking_name or 'Not configured')}\n"
+        f"💵 Remaining Payment: ₹{remaining}\n"
+        f"⏱ Processing Time: {html.escape(wallet.processing_time)}\n\n"
+        "🔐 Application और Documents submit करने के लिए Bot को Private Chat में खोलें।"
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔒 Continue Application Privately", url=private_url)],
+        [InlineKeyboardButton(text="🔙 Back", callback_data="g:apply"), InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")],
+    ])
+    await callback.message.answer(text, reply_markup=kb, parse_mode=ParseMode.HTML)
+    await callback.answer()
+
+
+@group_router.callback_query(F.data == "g:terms")
+async def group_terms(callback: CallbackQuery):
+    await callback.message.answer(TERMS_TEXT, reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")]]))
+    await callback.answer()
+
+
+@group_router.callback_query(F.data == "g:home")
+async def group_home(callback: CallbackQuery, bot: Bot):
+    await send_group_dashboard(callback.message, bot)
+    await callback.answer()
+
+
+@group_router.message(F.text)
+async def group_keyword_info(message: Message, bot: Bot):
+    text_value = re.sub(r"[^a-z0-9 @]+", " ", (message.text or "").lower())
+    normalized = " ".join(text_value.split())
+    me = await bot.get_me()
+    bot_mentioned = bool(me.username and f"@{me.username.lower()}" in normalized)
+    replied_to_bot = bool(message.reply_to_message and message.reply_to_message.from_user and message.reply_to_message.from_user.id == bot.id)
+    matched = normalized in START_KEYWORDS or any(
+        phrase in normalized for phrase in (
+            "business wallet", "wallet open", "open wallet", "google pay business",
+            "paytm business", "bharatpe business", "phonepe business",
+            "mobikwik business", "bajaj pay business"
+        )
+    )
+    if matched or bot_mentioned or replied_to_bot:
+        await send_group_dashboard(message, bot)
 
 
 class Flow(StatesGroup):
@@ -108,17 +281,14 @@ async def welcome_caption(first_name: str) -> str:
     status = "✅ Service Available" if available else "❌ Service Not Available"
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
     return (
-        f"👋 Hello {html.escape(first_name)}!\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        f"🎉 {html.escape(settings.business_name)}\n\n"
-        "💳 Business Wallet Services\n"
-        "📝 Apply Now & Track Status\n\n"
-        "🕙 Working Hours\n"
-        f"{html.escape(working)}\n\n"
+        f"👋 <b>Hello {html.escape(first_name)}!</b>\n\n"
+        "📌 <b>First read Terms & Conditions, then start your application.</b>\n\n"
+        f"🏦 <b>{html.escape(settings.business_name)}</b>\n"
+        "Business Wallet Application & Tracking\n\n"
+        f"🕙 <b>Working Hours:</b> {html.escape(working)}\n"
         f"{status}\n"
-        f"📅 {today}\n"
-        "━━━━━━━━━━━━━━━━━━\n"
-        "Neeche diye gaye button se service select karein 👇"
+        f"📅 {today}\n\n"
+        "Please choose an option below 👇"
     )
 
 
@@ -181,6 +351,7 @@ async def wallet_details(callback: CallbackQuery):
         f"📄 <b>Required Documents</b>\n{doc_lines}\n\n"
         f"💰 Total Fee: ₹{wallet.total_fee}\n"
         f"💳 First Payment: {wallet.initial_percent}% — ₹{due}\n"
+        f"🏷 Banking Name: {html.escape(wallet.banking_name or 'Shown after continue')}\n"
         f"💵 Remaining Payment: ₹{remaining}\n"
         f"⏱ Processing Time: {html.escape(wallet.processing_time)}"
     )
@@ -346,8 +517,10 @@ async def show_initial_payment(message: Message, state: FSMContext):
         f"🏦 Wallet: {html.escape(wallet.name)}\n"
         f"💰 Total Fee: ₹{wallet.total_fee}\n"
         f"📥 Pay Now ({wallet.initial_percent}%): ₹{app.amount_due}\n"
-        f"💵 Remaining: ₹{remaining}\n\n"
-        f"UPI ID: <code>{html.escape(wallet.upi_id or 'Admin will provide')}</code>"
+        f"💵 Remaining: ₹{remaining}\n"
+        f"🏷 Banking Name: <b>{html.escape(wallet.banking_name or 'Not configured')}</b>\n\n"
+        f"UPI ID: <code>{html.escape(wallet.upi_id or 'Admin will provide')}</code>\n\n"
+        "Payment karne se pehle UPI app mein Banking Name verify karein."
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ I Have Made the Payment", callback_data=f"initial-paid:{app.id}")],
@@ -547,7 +720,38 @@ async def rate(callback: CallbackQuery):
     await callback.answer("Thank you!")
 
 
+
+START_KEYWORDS = {
+    "hi", "hii", "hiii", "hello", "hlo", "hey", "start", "open",
+    "wallet", "business wallet", "business wallets", "wallet open",
+    "google pay", "gpay", "paytm", "bharatpe", "bharat pe",
+    "phonepe", "phone pe", "mobikwik", "bajaj pay"
+}
+
+
+@router.message(F.text)
+async def keyword_start(message: Message, state: FSMContext):
+    # Do not interrupt an active application/payment form.
+    if await state.get_state() is not None:
+        return
+    text_value = re.sub(r"[^a-z0-9 ]+", " ", (message.text or "").lower())
+    normalized = " ".join(text_value.split())
+    matched = normalized in START_KEYWORDS or any(
+        phrase in normalized for phrase in (
+            "business wallet", "wallet open", "open wallet", "google pay business",
+            "paytm business", "bharatpe business", "phonepe business",
+            "mobikwik business", "bajaj pay business"
+        )
+    )
+    if matched:
+        await state.clear()
+        await ensure_user(message)
+        await send_home(message)
+
+
 def create_dispatcher():
     dispatcher = Dispatcher()
+    # Group privacy router must run before private application handlers.
+    dispatcher.include_router(group_router)
     dispatcher.include_router(router)
     return dispatcher

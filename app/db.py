@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, text, inspect
 from app.config import get_settings
 from app.models import Base, Wallet, DocumentRule, SystemSetting
 
@@ -11,6 +11,7 @@ DEFAULT_SETTINGS = {
     "working_hours": "10:00 AM – 9:30 PM",
     "service_available": "true",
     "final_upi_id": "",
+    "final_banking_name": "",
     "final_qr_file": "",
 }
 
@@ -24,6 +25,13 @@ async def setting_value(key: str, default: str = "") -> str:
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+        # Lightweight migration for existing V2 databases.
+        def migrate(sync_conn):
+            columns = {c["name"] for c in inspect(sync_conn).get_columns("wallets")}
+            if "banking_name" not in columns:
+                sync_conn.execute(text("ALTER TABLE wallets ADD COLUMN banking_name VARCHAR(150) DEFAULT ''"))
+        await conn.run_sync(migrate)
 
     async with Session() as session:
         for key, value in DEFAULT_SETTINGS.items():

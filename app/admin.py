@@ -47,6 +47,7 @@ async def notify_status(application_id: int, status: str):
         wallet = await session.get(Wallet, app.wallet_id)
         final_qr = await get_setting(session, "final_qr_file", "")
         final_upi = await get_setting(session, "final_upi_id", "")
+        final_banking_name = await get_setting(session, "final_banking_name", "")
     bot = Bot(settings.bot_token)
     try:
         if status == "WALLET_READY":
@@ -57,7 +58,9 @@ async def notify_status(application_id: int, status: str):
                 f"Wallet: {html.escape(wallet.name)}\n"
                 f"Remaining Payment: ₹{remaining}\n\n"
                 "कृपया नीचे दिए गए QR के माध्यम से अंतिम भुगतान पूरा करें।\n"
-                f"UPI ID: <code>{html.escape(final_upi or 'Contact authorized agent')}</code>\n\n"
+                f"UPI ID: <code>{html.escape(final_upi or 'Contact authorized agent')}</code>\n"
+                f"Banking Name: <b>{html.escape(final_banking_name or 'Not configured')}</b>\n\n"
+                "Payment करने से पहले UPI app में Banking Name verify करें।\n"
                 "Payment के बाद UTR Number और Receipt submit करें।"
             )
             kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ I Have Paid Final Payment", callback_data=f"final-paid:{app.id}")]])
@@ -133,17 +136,19 @@ def build_admin_app():
                 "working_hours": await get_setting(session, "working_hours", "10:00 AM – 9:30 PM"),
                 "service_available": (await get_setting(session, "service_available", "true")) == "true",
                 "final_upi_id": await get_setting(session, "final_upi_id", ""),
+                "final_banking_name": await get_setting(session, "final_banking_name", ""),
                 "final_qr_file": await get_setting(session, "final_qr_file", ""),
             }
         return templates.TemplateResponse("settings.html", {"request": request, **data})
 
     @app.post("/admin/settings")
-    async def save_settings(request: Request, working_hours: str = Form(...), final_upi_id: str = Form(""), service_available: bool = Form(False), final_qr: UploadFile | None = File(None)):
+    async def save_settings(request: Request, working_hours: str = Form(...), final_upi_id: str = Form(""), final_banking_name: str = Form(""), service_available: bool = Form(False), final_qr: UploadFile | None = File(None)):
         if not auth(request): raise HTTPException(403)
         async with Session() as session:
             await set_setting(session, "working_hours", working_hours.strip())
             await set_setting(session, "service_available", "true" if service_available else "false")
             await set_setting(session, "final_upi_id", final_upi_id.strip())
+            await set_setting(session, "final_banking_name", final_banking_name.strip())
             if final_qr and final_qr.filename:
                 os.makedirs(settings.storage_dir, exist_ok=True)
                 ext = os.path.splitext(final_qr.filename)[1].lower() or ".jpg"
@@ -181,12 +186,12 @@ def build_admin_app():
         return templates.TemplateResponse("wallet_edit.html", {"request": request, "w": wallet, "docs": docs})
 
     @app.post("/admin/wallet/{wid}/save")
-    async def wallet_save(request: Request, wid: int, name: str = Form(...), description: str = Form(""), total_fee: int = Form(...), initial_percent: int = Form(...), processing_time: str = Form(""), upi_id: str = Form(""), active: bool = Form(False), qr: UploadFile | None = File(None)):
+    async def wallet_save(request: Request, wid: int, name: str = Form(...), description: str = Form(""), total_fee: int = Form(...), initial_percent: int = Form(...), processing_time: str = Form(""), upi_id: str = Form(""), banking_name: str = Form(""), active: bool = Form(False), qr: UploadFile | None = File(None)):
         if not auth(request): raise HTTPException(403)
         async with Session() as session:
             wallet = await session.get(Wallet, wid)
             if not wallet: raise HTTPException(404)
-            wallet.name = name.strip(); wallet.description = description.strip(); wallet.total_fee = max(total_fee, 0); wallet.initial_percent = min(max(initial_percent, 1), 100); wallet.processing_time = processing_time.strip(); wallet.upi_id = upi_id.strip(); wallet.active = active
+            wallet.name = name.strip(); wallet.description = description.strip(); wallet.total_fee = max(total_fee, 0); wallet.initial_percent = min(max(initial_percent, 1), 100); wallet.processing_time = processing_time.strip(); wallet.upi_id = upi_id.strip(); wallet.banking_name = banking_name.strip(); wallet.active = active
             if qr and qr.filename:
                 os.makedirs(settings.storage_dir, exist_ok=True)
                 ext = os.path.splitext(qr.filename)[1].lower() or ".jpg"
@@ -250,6 +255,43 @@ def build_admin_app():
             try: await notify_status(aid, status)
             except Exception as exc: print(f"Notification error for application {aid}: {exc}")
         return RedirectResponse(f"/admin/application/{aid}?updated={'1' if changed else '0'}", 303)
+
+    @app.post("/admin/application/{aid}/delete")
+    async def delete_application(request: Request, aid: int, confirm_application_id: str = Form(...)):
+        if not auth(request):
+            raise HTTPException(403)
+        paths: list[str] = []
+        async with Session() as session:
+            application = await session.get(Application, aid, with_for_update=True)
+            if not application:
+                raise HTTPException(404)
+            expected = application.application_id or f"DRAFT-{application.id}"
+            if confirm_application_id.strip().upper() != expected.upper():
+                return RedirectResponse(f"/admin/application/{aid}?delete_error=1", 303)
+
+            submissions = (await session.scalars(select(Submission).where(Submission.application_id == aid))).all()
+            paths.extend(x.file_path for x in submissions if x.file_path)
+            if application.receipt_file:
+                paths.append(application.receipt_file)
+            final_payment = (await session.scalars(select(FinalPayment).where(FinalPayment.application_id == aid))).first()
+            if final_payment and final_payment.receipt_file:
+                paths.append(final_payment.receipt_file)
+
+            # Child records use cascade FKs where available; explicit deletes keep SQLite/Postgres consistent.
+            for model in (Submission, FinalPayment, Rating, StatusEvent):
+                rows = (await session.scalars(select(model).where(model.application_id == aid))).all()
+                for row in rows:
+                    await session.delete(row)
+            await session.delete(application)
+            await session.commit()
+
+        for path in paths:
+            try:
+                if path and os.path.isfile(path):
+                    os.remove(path)
+            except OSError:
+                pass
+        return RedirectResponse("/admin?deleted=1", 303)
 
     @app.get("/admin/file/{sid}")
     async def private_file(request: Request, sid: int):

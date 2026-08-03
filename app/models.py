@@ -28,6 +28,7 @@ class Wallet(Base):
     initial_percent: Mapped[int] = mapped_column(Integer, default=70)
     processing_time: Mapped[str] = mapped_column(String(100), default="Subject to verification")
     upi_id: Mapped[str] = mapped_column(String(150), default="")
+    banking_name: Mapped[str] = mapped_column(String(150), default="")
     qr_file: Mapped[str | None] = mapped_column(String(255), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
