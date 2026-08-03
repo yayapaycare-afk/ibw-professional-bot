@@ -100,9 +100,15 @@ async def group_main_menu(bot: Bot) -> InlineKeyboardMarkup:
     private_url = f"https://t.me/{me.username}?start=private"
     channel_url = settings.official_channel or "https://t.me/"
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📝 Apply for Business Wallet", callback_data="g:apply")],
-        [InlineKeyboardButton(text="🔍 Track Application", url=private_url), InlineKeyboardButton(text="📂 My Applications", url=private_url)],
-        [InlineKeyboardButton(text="💬 Contact Support", url=private_url), InlineKeyboardButton(text="📜 Terms & Conditions", callback_data="g:terms")],
+        [InlineKeyboardButton(text="📝 Apply Now", callback_data="g:apply")],
+        [
+            InlineKeyboardButton(text="🔍 Track Status", url=private_url),
+            InlineKeyboardButton(text="📂 My Applications", url=private_url),
+        ],
+        [
+            InlineKeyboardButton(text="💬 Support", url=private_url),
+            InlineKeyboardButton(text="📜 Terms", callback_data="g:terms"),
+        ],
         [InlineKeyboardButton(text="📢 Official Channel", url=channel_url)],
     ])
 
@@ -250,9 +256,15 @@ class Flow(StatesGroup):
 def main_menu() -> InlineKeyboardMarkup:
     channel_url = settings.official_channel or "https://t.me/"
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📝 Apply for Business Wallet", callback_data="apply")],
-        [InlineKeyboardButton(text="🔍 Track Application", callback_data="track"), InlineKeyboardButton(text="📂 My Applications", callback_data="mine")],
-        [InlineKeyboardButton(text="💬 Contact Support", callback_data="support"), InlineKeyboardButton(text="📜 Terms & Conditions", callback_data="terms")],
+        [InlineKeyboardButton(text="📝 Apply Now", callback_data="apply")],
+        [
+            InlineKeyboardButton(text="🔍 Track Status", callback_data="track"),
+            InlineKeyboardButton(text="📂 My Applications", callback_data="mine"),
+        ],
+        [
+            InlineKeyboardButton(text="💬 Support", callback_data="support"),
+            InlineKeyboardButton(text="📜 Terms", callback_data="terms"),
+        ],
         [InlineKeyboardButton(text="📢 Official Channel", url=channel_url)],
     ])
 
@@ -277,22 +289,19 @@ async def ensure_user(message: Message):
 async def welcome_caption(first_name: str) -> str:
     working = await setting_value("working_hours", "10:00 AM – 9:30 PM")
     available = (await setting_value("service_available", "true")).lower() == "true"
-    status = "✅ Available" if available else "❌ Unavailable"
+    status = "Available" if available else "Unavailable"
+    status_icon = "✅" if available else "❌"
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
     return (
         "🏦 <b>INDIA BUSINESS WALLETS</b>\n"
-        "━━━━━━━━━━━━━━━━━━━━\n\n"
-        f"Hello {html.escape(first_name)} 👋\n\n"
-        f"✅ <b>Service Status:</b> {status}\n"
-        f"🕙 <b>Working Hours:</b> {html.escape(working)}\n"
-        f"📅 <b>Date:</b> {today}\n\n"
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        "📄 Available Wallet Services\n"
-        "📝 Apply for a Business Wallet\n"
-        "🔍 Track Your Application\n\n"
-        "📌 आवेदन शुरू करने से पहले <b>Terms & Conditions</b> जरूर पढ़ें।\n"
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        "नीचे दिए गए विकल्पों में से चुनें 👇"
+        "━━━━━━━━━━━━━━━━━━\n"
+        f"👋 Hello {html.escape(first_name)}\n\n"
+        f"{status_icon} <b>Service:</b> {status}\n"
+        f"🕙 <b>Time:</b> {html.escape(working)}\n"
+        f"📅 <b>Date:</b> {today}\n"
+        "━━━━━━━━━━━━━━━━━━\n"
+        "📌 आवेदन से पहले <b>Terms & Conditions</b> पढ़ें।\n"
+        "👇 नीचे से सेवा चुनें"
     )
 
 
