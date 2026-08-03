@@ -277,34 +277,32 @@ async def ensure_user(message: Message):
 async def welcome_caption(first_name: str) -> str:
     working = await setting_value("working_hours", "10:00 AM – 9:30 PM")
     available = (await setting_value("service_available", "true")).lower() == "true"
-    status = "✅ Service Available" if available else "❌ Service Not Available"
+    status = "✅ Available" if available else "❌ Unavailable"
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
     return (
-        f"👋 <b>Hello {html.escape(first_name)}!</b>\n\n"
-        f"🏦 <b>{html.escape(settings.business_name)}</b>\n"
-        f"{status}\n\n"
-        f"🕙 {html.escape(working)}\n"
-        f"📅 {today}\n\n"
-        "📌 आवेदन शुरू करने से पहले <b>Terms & Conditions</b> जरूर पढ़ें।"
+        "🏦 <b>INDIA BUSINESS WALLETS</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"Hello {html.escape(first_name)} 👋\n\n"
+        f"✅ <b>Service Status:</b> {status}\n"
+        f"🕙 <b>Working Hours:</b> {html.escape(working)}\n"
+        f"📅 <b>Date:</b> {today}\n\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "📄 Available Wallet Services\n"
+        "📝 Apply for a Business Wallet\n"
+        "🔍 Track Your Application\n\n"
+        "📌 आवेदन शुरू करने से पहले <b>Terms & Conditions</b> जरूर पढ़ें।\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        "नीचे दिए गए विकल्पों में से चुनें 👇"
     )
 
 
 async def send_home(target: Message):
     dashboard_text = await welcome_caption(target.chat.first_name or "User")
-
-    if os.path.exists(settings.welcome_image_path):
-        await target.answer_photo(
-            FSInputFile(settings.welcome_image_path),
-            caption=dashboard_text,
-            reply_markup=main_menu(),
-            parse_mode=ParseMode.HTML,
-        )
-    else:
-        await target.answer(
-            dashboard_text,
-            reply_markup=main_menu(),
-            parse_mode=ParseMode.HTML,
-        )
+    await target.answer(
+        dashboard_text,
+        reply_markup=main_menu(),
+        parse_mode=ParseMode.HTML,
+    )
 
 
 async def ask_next_document(message: Message, state: FSMContext):
