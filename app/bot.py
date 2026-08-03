@@ -314,6 +314,86 @@ async def send_home(target: Message):
     )
 
 
+@router.message(CommandStart())
+async def start(message: Message, state: FSMContext):
+    await state.clear()
+    await ensure_user(message)
+    await send_home(message)
+
+
+@router.message(Command("cancel"))
+async def cancel(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer("Current process cancelled.", reply_markup=main_menu())
+
+
+@router.callback_query(F.data == "home")
+async def home(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.answer()
+    await send_home(callback.message)
+
+
+@router.callback_query(F.data == "apply")
+async def apply(callback: CallbackQuery):
+    async with Session() as session:
+        wallets = (await session.scalars(select(Wallet).where(Wallet.active.is_(True)).order_by(Wallet.sort_order, Wallet.id))).all()
+    if not wallets:
+        await callback.message.answer("Abhi koi wallet service available nahi hai.", reply_markup=navigation())
+    else:
+        rows = [[InlineKeyboardButton(text=f"🏦 {w.name}", callback_data=f"wallet:{w.id}")] for w in wallets]
+        rows.append([InlineKeyboardButton(text="🔙 Back", callback_data="home"), InlineKeyboardButton(text="🏠 Main Menu", callback_data="home")])
+        await callback.message.answer("🏦 <b>Select a Business Wallet</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("wallet:"))
+async def wallet_details(callback: CallbackQuery):
+    wallet_id = int(callback.data.split(":", 1)[1])
+    async with Session() as session:
+        wallet = await session.get(Wallet, wallet_id)
+        docs = (await session.scalars(select(DocumentRule).where(DocumentRule.wallet_id == wallet_id).order_by(DocumentRule.sort_order, DocumentRule.id))).all()
+    if not wallet or not wallet.active:
+        await callback.answer("Wallet unavailable.", show_alert=True)
+        return
+    due = round(wallet.total_fee * wallet.initial_percent / 100)
+    remaining = max(wallet.total_fee - due, 0)
+    doc_lines = "\n".join(f"• {html.escape(d.name)}" for d in docs) or "• Admin has not added documents yet"
+    text = (
+        f"🏦 <b>{html.escape(wallet.name)}</b>\n\n"
+        f"{html.escape(wallet.description or '')}\n\n"
+        f"📄 <b>Required Documents</b>\n{doc_lines}\n\n"
+        f"💰 Total Fee: ₹{wallet.total_fee}\n"
+        f"💳 First Payment: {wallet.initial_percent}% — ₹{due}\n"
+        f"🏷 Banking Name: {html.escape(wallet.banking_name or 'Shown after continue')}\n"
+        f"💵 Remaining Payment: ₹{remaining}\n"
+        f"⏱ Processing Time: {html.escape(wallet.processing_time)}"
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Continue Application", callback_data=f"continue:{wallet_id}")],
+        [InlineKeyboardButton(text="🔙 Back", callback_data="apply"), InlineKeyboardButton(text="🏠 Main Menu", callback_data="home")],
+    ])
+    await callback.message.answer(text, reply_markup=kb)
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("continue:"))
+async def continue_application(callback: CallbackQuery, state: FSMContext):
+    wallet_id = int(callback.data.split(":", 1)[1])
+    async with Session() as session:
+        wallet = await session.get(Wallet, wallet_id)
+        if not wallet or not wallet.active:
+            await callback.answer("Wallet unavailable.", show_alert=True)
+            return
+        app = Application(user_id=callback.from_user.id, wallet_id=wallet_id, status="DOCUMENTS_PENDING", amount_due=round(wallet.total_fee * wallet.initial_percent / 100))
+        session.add(app)
+        await session.commit()
+        await session.refresh(app)
+    await state.update_data(app_db_id=app.id, wallet_id=wallet_id, doc_index=0)
+    await callback.answer()
+    await ask_next_document(callback.message, state)
+
+
 async def ask_next_document(message: Message, state: FSMContext):
     data = await state.get_data()
     async with Session() as session:
