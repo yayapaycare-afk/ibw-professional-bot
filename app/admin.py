@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 
 from aiogram import Bot
+from aiogram.enums import ParseMode
 from aiogram.types import FSInputFile, InlineKeyboardButton, InlineKeyboardMarkup
 from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
@@ -40,45 +41,113 @@ async def set_setting(session, key: str, value: str):
 async def notify_status(application_id: int, status: str):
     if not settings.bot_token:
         return
+
     async with Session() as session:
         app = await session.get(Application, application_id)
         if not app:
             return
+
         wallet = await session.get(Wallet, app.wallet_id)
         final_qr = await get_setting(session, "final_qr_file", "")
         final_upi = await get_setting(session, "final_upi_id", "")
         final_banking_name = await get_setting(session, "final_banking_name", "")
+
     bot = Bot(settings.bot_token)
+
     try:
+        application_code = html.escape(app.application_id or "Draft")
+        wallet_name = html.escape(wallet.name if wallet else "Business Wallet")
+        readable_status = html.escape(status.replace("_", " ").title())
+
         if status == "WALLET_READY":
-            remaining = max(wallet.total_fee - app.amount_due, 0)
-            text = (
+            remaining = max((wallet.total_fee if wallet else 0) - app.amount_due, 0)
+
+            message_text = (
                 "🎉 <b>आपका Business Wallet तैयार है!</b>\n\n"
-                f"Application ID: <code>{app.application_id}</code>\n"
-                f"Wallet: {html.escape(wallet.name)}\n"
-                f"Remaining Payment: ₹{remaining}\n\n"
-                "कृपया नीचे दिए गए QR के माध्यम से अंतिम भुगतान पूरा करें।\n"
-                f"UPI ID: <code>{html.escape(final_upi or 'Contact authorized agent')}</code>\n"
-                f"Banking Name: <b>{html.escape(final_banking_name or 'Not configured')}</b>\n\n"
-                "Payment करने से पहले UPI app में Banking Name verify करें।\n"
-                "Payment के बाद UTR Number और Receipt submit करें।"
+                f"Application ID: <code>{application_code}</code>\n"
+                f"Wallet: <b>{wallet_name}</b>\n\n"
+                f"💰 <b>Remaining Payment:</b> ₹{remaining}\n"
+                f"💳 <b>UPI ID:</b> "
+                f"<code>{html.escape(final_upi or 'Contact authorized agent')}</code>\n"
+                f"🏦 <b>Banking Name:</b> "
+                f"{html.escape(final_banking_name or 'Not configured')}\n\n"
+                "कृपया नीचे दिए गए QR के माध्यम से अंतिम भुगतान पूरा करें।\n\n"
+                "⚠️ Payment करने से पहले अपने UPI App में Banking Name जरूर verify करें।\n\n"
+                "Payment पूरा होने के बाद:\n"
+                "• UTR Number दर्ज करें\n"
+                "• Payment Receipt upload करें"
             )
-            kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ I Have Paid Final Payment", callback_data=f"final-paid:{app.id}")]])
+
+            keyboard = InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(
+                            text="✅ Submit Final Payment",
+                            callback_data=f"final-paid:{app.id}",
+                        )
+                    ]
+                ]
+            )
+
             if final_qr and os.path.exists(final_qr):
-                await bot.send_photo(app.user_id, FSInputFile(final_qr), caption=text, reply_markup=kb)
+                await bot.send_photo(
+                    app.user_id,
+                    FSInputFile(final_qr),
+                    caption=message_text,
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML,
+                )
             else:
-                await bot.send_message(app.user_id, text, reply_markup=kb)
+                await bot.send_message(
+                    app.user_id,
+                    message_text,
+                    reply_markup=keyboard,
+                    parse_mode=ParseMode.HTML,
+                )
+
         elif status == "COMPLETED":
-            text = (
+            message_text = (
                 "🎉 <b>मुबारक हो!</b>\n\n"
                 "आपकी Business Wallet Service सफलतापूर्वक पूरी हो गई है।\n\n"
-                "हमारे साथ जुड़ने के लिए धन्यवाद।\n"
+                f"Application ID: <code>{application_code}</code>\n"
+                f"Wallet: <b>{wallet_name}</b>\n"
+                "Status: <b>Completed ✅</b>\n\n"
+                "India Business Wallets पर भरोसा करने के लिए धन्यवाद।\n\n"
                 "कृपया बताएं कि आपको हमारी Service कैसी लगी?"
             )
-            rating_rows = [[InlineKeyboardButton(text="⭐" * n, callback_data=f"rate:{app.id}:{n}")] for n in range(1, 6)]
-            await bot.send_message(app.user_id, text, reply_markup=InlineKeyboardMarkup(inline_keyboard=rating_rows))
+
+            rating_rows = [
+                [
+                    InlineKeyboardButton(
+                        text="⭐" * rating,
+                        callback_data=f"rate:{app.id}:{rating}",
+                    )
+                ]
+                for rating in range(1, 6)
+            ]
+
+            await bot.send_message(
+                app.user_id,
+                message_text,
+                reply_markup=InlineKeyboardMarkup(inline_keyboard=rating_rows),
+                parse_mode=ParseMode.HTML,
+            )
+
         else:
-            await bot.send_message(app.user_id, f"🔔 <b>Application Status Updated</b>\n\nApplication ID: <code>{app.application_id or 'Draft'}</code>\nNew Status: <b>{status.replace('_', ' ').title()}</b>")
+            message_text = (
+                "🔔 <b>Application Status Updated</b>\n\n"
+                f"Application ID: <code>{application_code}</code>\n"
+                f"New Status: <b>{readable_status}</b>\n\n"
+                "आपकी Application पर काम शुरू हो चुका है।\n"
+                "कृपया आगे की जानकारी के लिए Bot notifications check करते रहें।"
+            )
+
+            await bot.send_message(
+                app.user_id,
+                message_text,
+                parse_mode=ParseMode.HTML,
+            )
+
     finally:
         await bot.session.close()
 
