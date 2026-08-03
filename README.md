@@ -1,39 +1,49 @@
-# India Business Wallets — Professional Bot V2
+# India Business Wallets V2
 
-Professional Telegram bot with a secure browser-based admin panel.
+Integrated Telegram bot and secure browser admin panel.
 
-## Main Features
+## Important V2 features
 
-- Professional Telegram welcome dashboard
-- Wallet-wise services and fees
-- Dynamic required documents
+- Welcome image, dynamic India date, service status and working time (default 10:00 AM – 9:30 PM)
+- Fixed start menu and Back/Main Menu navigation
+- Exact Terms & Conditions post supplied by the owner
+- Dynamic wallet-wise documents
 - Upload or manual document entry
-- Mobile number as a compulsory first field
-- First payment with wallet-specific QR
-- UTR and receipt submission
-- Unique Application ID
-- WhatsApp contact button
-- Browser-based admin dashboard
-- Wallet and document management
-- Payment verification
-- Common final-payment QR
-- Wallet Ready notification
-- Completion message and star rating
-- Status history and duplicate-update protection
-- PostgreSQL support
-- Railway deployment support
+- Wallet-wise first-payment QR and percentage
+- One common final-payment QR
+- Wallet Ready notification with final-payment flow
+- Completed notification with one-time 1–5 star rating
+- Idempotent admin status updates and status history
+- Browser dashboard with wallet, document, application, payment and rating management
 
-## Required Environment Variables
+## Railway variables
 
-```env
-BOT_TOKEN=
-DATABASE_URL=
-ADMIN_USERNAME=
-ADMIN_PASSWORD=
-SESSION_SECRET=
-PUBLIC_BASE_URL=
-WHATSAPP_NUMBER=
-OFFICIAL_CHANNEL=
-BUSINESS_NAME=
-STORAGE_DIR=
-WELCOME_IMAGE_PATH=
+Copy all keys from `.env.example` into Railway Variables. Use a PostgreSQL `DATABASE_URL` reference. For persistent documents attach a Railway Volume mounted at `/data` and set:
+
+`STORAGE_DIR=/data/documents`
+
+## Start command
+
+`uvicorn app.main:web_app --host 0.0.0.0 --port $PORT`
+
+## Admin panel
+
+Open `/login` on your Railway domain.
+
+## Upgrade note
+
+V2 adds new database tables using `create_all`, so existing core tables and applications are retained. Always back up PostgreSQL before major updates.
+
+## V3 Updates
+- Start dashboard responds to `/start`, Hi, Hello, Start, Open, Wallet and supported wallet names.
+- First-payment and final-payment Banking Name fields.
+- Cleaner start caption with Terms & Conditions reminder.
+- Permanent application deletion with typed Application ID confirmation and file cleanup.
+
+## Group Privacy Protection
+
+- Application and payment flows run only in private chat.
+- When the bot is added to a group, it posts a privacy notice with an **Open Bot Privately** button.
+- Group `/start`, wallet keywords, mentions, replies to the bot, and received document/photo uploads trigger the private-chat warning.
+- If the bot has permission to delete messages, received group photo/PDF uploads are removed automatically.
+- For best protection, give the bot **Delete Messages** permission in the group. Telegram privacy mode may prevent a bot from seeing ordinary group messages that are not commands, mentions, replies, or service messages.
