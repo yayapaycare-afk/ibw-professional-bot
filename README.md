@@ -1,36 +1,39 @@
-# IBW Professional Bot + Browser Admin Panel
+# India Business Wallets — Professional Bot V2
 
-## Features
-- Exact Telegram start menu requested
-- Dynamic wallet list
-- Wallet-wise price, initial-payment percentage, QR and UPI
-- Admin-managed required documents per wallet
-- Mobile Number as manual-only required document
-- Upload or manual entry for other documents
-- Special Bank Details manual flow: Account Number + IFSC
-- Payment UTR and receipt
-- Duplicate UTR prevention
-- Generated Application ID
+Professional Telegram bot with a secure browser-based admin panel.
+
+## Main Features
+
+- Professional Telegram welcome dashboard
+- Wallet-wise services and fees
+- Dynamic required documents
+- Upload or manual document entry
+- Mobile number as a compulsory first field
+- First payment with wallet-specific QR
+- UTR and receipt submission
+- Unique Application ID
 - WhatsApp contact button
-- Password-protected browser admin panel
-- Private document/receipt routes behind admin login
-- SQLite locally; PostgreSQL on Railway
+- Browser-based admin dashboard
+- Wallet and document management
+- Payment verification
+- Common final-payment QR
+- Wallet Ready notification
+- Completion message and star rating
+- Status history and duplicate-update protection
+- PostgreSQL support
+- Railway deployment support
 
-## Run locally
-1. Copy `.env.example` to `.env` and fill it.
-2. `pip install -r requirements.txt`
-3. `uvicorn app.main:web_app --reload`
-4. Open `http://localhost:8000/login`
+## Required Environment Variables
 
-The Telegram bot starts inside the same web process.
-
-## Railway
-Add PostgreSQL and set all variables from `.env.example`. Set `PUBLIC_BASE_URL` to your Railway/domain URL. The Procfile starts the web server.
-
-## Important production work before collecting real identity documents
-- Use object storage with encryption instead of local disk.
-- Use HTTPS and a strong random session secret.
-- Use hashed admin passwords and 2FA.
-- Add privacy/consent and data-retention policies.
-- Restrict access by admin roles and maintain audit logs.
-- Never request OTP, UPI PIN, passwords or card PINs.
+```env
+BOT_TOKEN=
+DATABASE_URL=
+ADMIN_USERNAME=
+ADMIN_PASSWORD=
+SESSION_SECRET=
+PUBLIC_BASE_URL=
+WHATSAPP_NUMBER=
+OFFICIAL_CHANNEL=
+BUSINESS_NAME=
+STORAGE_DIR=
+WELCOME_IMAGE_PATH=
