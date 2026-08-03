@@ -423,11 +423,27 @@ async def choose_upload(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "doc:manual")
 async def choose_manual(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    kind = data.get("current_kind", "single")
-    name = data.get("current_name", "details")
-    if kind == "bank":
+    kind = (data.get("current_kind") or "single").strip().lower()
+    name = (data.get("current_name") or "details").strip()
+    normalized_name = re.sub(r"[^a-z0-9]+", " ", name.lower()).strip()
+
+    # Treat bank/account documents as two-step manual input even when an older
+    # admin record was accidentally saved with the generic validation type.
+    is_bank_document = (
+        kind == "bank"
+        or "bank detail" in normalized_name
+        or "bank account" in normalized_name
+        or "account detail" in normalized_name
+        or normalized_name in {"bank", "account number", "account"}
+    )
+
+    if is_bank_document:
+        await state.update_data(current_kind="bank")
         await state.set_state(Flow.bank_account)
-        await callback.message.answer("Account Number enter karein:", reply_markup=navigation("apply"))
+        await callback.message.answer(
+            "🏦 Account Number enter karein:",
+            reply_markup=navigation("apply"),
+        )
     else:
         await state.set_state(Flow.document_input)
         await state.update_data(input_method="manual")
@@ -501,7 +517,7 @@ async def bank_account(message: Message, state: FSMContext):
         return
     await state.update_data(bank_account=account)
     await state.set_state(Flow.bank_ifsc)
-    await message.answer("IFSC Code enter karein:")
+    await message.answer("🏦 Ab IFSC Code enter karein, jaise SBIN0001234:")
 
 
 @router.message(Flow.bank_ifsc)
@@ -513,7 +529,7 @@ async def bank_ifsc(message: Message, state: FSMContext):
     data = await state.get_data()
     await save_submission(state, "manual", manual_value=json.dumps({"account_number": data["bank_account"], "ifsc": ifsc}))
     await state.set_state(None)
-    await message.answer("✅ Bank details saved successfully.")
+    await message.answer("✅ Account Number aur IFSC Code successfully saved.")
     await ask_next_document(message, state)
 
 
