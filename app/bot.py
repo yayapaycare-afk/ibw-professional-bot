@@ -194,7 +194,6 @@ async def group_wallet_details(callback: CallbackQuery, bot: Bot):
         f"📄 <b>Required Documents</b>\n{doc_lines}\n\n"
         f"💰 Total Fee: ₹{wallet.total_fee}\n"
         f"💳 First Payment: {wallet.initial_percent}% — ₹{due}\n"
-        f"🏷 Banking Name: {html.escape(wallet.banking_name or 'Not configured')}\n"
         f"💵 Remaining Payment: ₹{remaining}\n"
         f"⏱ Processing Time: {html.escape(wallet.processing_time)}\n\n"
         "🔐 Application और Documents submit करने के लिए Bot को Private Chat में खोलें।"
@@ -282,22 +281,31 @@ async def welcome_caption(first_name: str) -> str:
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
     return (
         f"👋 <b>Hello {html.escape(first_name)}!</b>\n\n"
-        "📌 <b>First read Terms & Conditions, then start your application.</b>\n\n"
+        "📌 Application शुरू करने से पहले <b>Terms & Conditions</b> जरूर पढ़ें।\n\n"
         f"🏦 <b>{html.escape(settings.business_name)}</b>\n"
         "Business Wallet Application & Tracking\n\n"
-        f"🕙 <b>Working Hours:</b> {html.escape(working)}\n"
+        "🕙 <b>Working Hours</b>\n"
+        f"{html.escape(working)}\n\n"
         f"{status}\n"
         f"📅 {today}\n\n"
-        "Please choose an option below 👇"
+        "नीचे दिए गए विकल्पों में से चुनें 👇"
     )
 
 
 async def send_home(target: Message):
-    caption = await welcome_caption(target.chat.first_name or "User")
+    dashboard_text = await welcome_caption(target.chat.first_name or "User")
+
+    # Send the welcome artwork separately so Telegram does not stretch the
+    # dashboard into one oversized photo caption.
     if os.path.exists(settings.welcome_image_path):
-        await target.answer_photo(FSInputFile(settings.welcome_image_path), caption=caption, reply_markup=main_menu(), parse_mode=ParseMode.HTML)
-    else:
-        await target.answer(caption, reply_markup=main_menu(), parse_mode=ParseMode.HTML)
+        await target.answer_photo(FSInputFile(settings.welcome_image_path))
+
+    # Keep the dashboard compact, readable and independent from the image.
+    await target.answer(
+        dashboard_text,
+        reply_markup=main_menu(),
+        parse_mode=ParseMode.HTML,
+    )
 
 
 @router.message(CommandStart())
