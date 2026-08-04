@@ -100,19 +100,12 @@ async def group_main_menu(bot: Bot) -> InlineKeyboardMarkup:
     private_url = f"https://t.me/{me.username}?start=private"
     channel_url = settings.official_channel or "https://t.me/"
 
+    # One full-width button per row prevents truncation in narrow group chats.
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📝 View Wallet Services", callback_data="g:apply")],
-        [
-            InlineKeyboardButton(text="🔍 Track Privately", url=private_url),
-            InlineKeyboardButton(text="📂 My Applications", url=private_url),
-        ],
-        [
-            InlineKeyboardButton(text="📜 Terms & Conditions", callback_data="g:terms"),
-        ],
-        [
-            InlineKeyboardButton(text="💬 Open Private Bot", url=private_url),
-            InlineKeyboardButton(text="📢 Official Channel", url=channel_url),
-        ],
+        [InlineKeyboardButton(text="📜 Terms & Conditions", callback_data="g:terms")],
+        [InlineKeyboardButton(text="🔒 Open Bot Privately", url=private_url)],
+        [InlineKeyboardButton(text="📢 Official Channel", url=channel_url)],
     ])
 
 
@@ -122,16 +115,17 @@ async def send_group_dashboard(message: Message, bot: Bot) -> None:
     status = "🟢 ONLINE (Active)" if available else "🔴 OFFLINE (Unavailable)"
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
 
+    # Lines are intentionally kept short for Telegram group bubbles.
     dashboard_text = (
         "🏛 <b>Welcome to IBW Bot</b>\n"
-        "━━━━━━━━━━━━━━━━\n\n"
+        "━━━━━━━━━━━━\n\n"
         f"👋 Hi {html.escape(first_name)},\n"
         "Welcome to our official Bot.\n\n"
-        "🔐 Trusted Business Wallet Services\n"
-        "Available across India 🇮🇳\n\n"
-        f"{status}\n"
+        "🔐 Trusted Business Wallet\n"
+        "Services available across India 🇮🇳\n\n"
+        f"<b>Status:</b> {status}\n"
         f"📅 <b>Date:</b> {today}\n\n"
-        "━━━━━━━━━━━━━━━━\n"
+        "━━━━━━━━━━━━\n"
         "📋 पहले Terms जरूर पढ़ें 🔞\n\n"
         "नीचे से Service चुनें 👇"
     )
