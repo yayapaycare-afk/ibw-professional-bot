@@ -1,4 +1,5 @@
 import html
+import mimetypes
 import os
 import uuid
 from datetime import datetime
@@ -20,6 +21,42 @@ from app.models import Wallet, DocumentRule, Application, Submission, User, Syst
 
 settings = get_settings()
 templates = Jinja2Templates(directory="app/templates")
+
+
+def resolve_stored_file(stored_path: str | None) -> str | None:
+    """Resolve current and legacy upload paths without changing database data."""
+    if not stored_path:
+        return None
+
+    candidates = [stored_path]
+    basename = os.path.basename(stored_path)
+    if basename:
+        candidates.append(os.path.join(settings.storage_dir, basename))
+        candidates.append(os.path.join("storage", basename))
+
+    seen: set[str] = set()
+    for candidate in candidates:
+        normalized = os.path.abspath(candidate)
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        if os.path.isfile(normalized):
+            return normalized
+    return None
+
+
+def protected_file_response(path: str) -> FileResponse:
+    media_type, _ = mimetypes.guess_type(path)
+    response = FileResponse(
+        path,
+        media_type=media_type or "application/octet-stream",
+        filename=os.path.basename(path),
+        content_disposition_type="inline",
+    )
+    response.headers["Cache-Control"] = "private, no-store, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 def auth(request: Request) -> bool:
@@ -156,7 +193,21 @@ async def notify_status(application_id: int, status: str):
 def build_admin_app():
     app = FastAPI(title="IBW Admin")
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
-    app.add_middleware(SessionMiddleware, secret_key=settings.session_secret, https_only=True, same_site="lax", max_age=43200)
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.session_secret,
+        https_only=True,
+        same_site="lax",
+        max_age=43200,
+    )
+
+    @app.middleware("http")
+    async def prevent_private_page_cache(request: Request, call_next):
+        response = await call_next(request)
+        if request.url.path.startswith("/admin") or request.url.path in {"/login", "/logout"}:
+            response.headers["Cache-Control"] = "private, no-store, max-age=0"
+            response.headers["Pragma"] = "no-cache"
+        return response
 
     @app.get("/service-worker.js")
     async def service_worker():
@@ -178,6 +229,8 @@ def build_admin_app():
 
     @app.get("/login", response_class=HTMLResponse)
     async def login_page(request: Request):
+        if auth(request):
+            return RedirectResponse("/admin", 303)
         return templates.TemplateResponse("login.html", {"request": request, "error": None})
 
     @app.post("/login")
@@ -376,23 +429,35 @@ def build_admin_app():
 
     @app.get("/admin/file/{sid}")
     async def private_file(request: Request, sid: int):
-        if not auth(request): raise HTTPException(403)
-        async with Session() as session: sub = await session.get(Submission, sid)
-        if not sub or not sub.file_path or not os.path.exists(sub.file_path): raise HTTPException(404)
-        return FileResponse(sub.file_path)
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/file/{sid}", 303)
+        async with Session() as session:
+            sub = await session.get(Submission, sid)
+        resolved = resolve_stored_file(sub.file_path if sub else None)
+        if not resolved:
+            raise HTTPException(404, "Document file is unavailable on server storage")
+        return protected_file_response(resolved)
 
     @app.get("/admin/receipt/{aid}")
     async def receipt(request: Request, aid: int):
-        if not auth(request): raise HTTPException(403)
-        async with Session() as session: application = await session.get(Application, aid)
-        if not application or not application.receipt_file or not os.path.exists(application.receipt_file): raise HTTPException(404)
-        return FileResponse(application.receipt_file)
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/receipt/{aid}", 303)
+        async with Session() as session:
+            application = await session.get(Application, aid)
+        resolved = resolve_stored_file(application.receipt_file if application else None)
+        if not resolved:
+            raise HTTPException(404, "Payment receipt is unavailable on server storage")
+        return protected_file_response(resolved)
 
     @app.get("/admin/final-receipt/{aid}")
     async def final_receipt(request: Request, aid: int):
-        if not auth(request): raise HTTPException(403)
-        async with Session() as session: payment = (await session.scalars(select(FinalPayment).where(FinalPayment.application_id == aid))).first()
-        if not payment or not os.path.exists(payment.receipt_file): raise HTTPException(404)
-        return FileResponse(payment.receipt_file)
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/final-receipt/{aid}", 303)
+        async with Session() as session:
+            payment = (await session.scalars(select(FinalPayment).where(FinalPayment.application_id == aid))).first()
+        resolved = resolve_stored_file(payment.receipt_file if payment else None)
+        if not resolved:
+            raise HTTPException(404, "Final payment receipt is unavailable on server storage")
+        return protected_file_response(resolved)
 
     return app
