@@ -114,20 +114,13 @@ async def group_main_menu(bot: Bot) -> InlineKeyboardMarkup:
 
 
 async def send_group_dashboard(message: Message, bot: Bot) -> None:
-    working = await setting_value("working_hours", "10:00 AM – 9:30 PM")
-    available = (await setting_value("service_available", "true")).lower() == "true"
-    status = "✅ Service Available" if available else "❌ Service Not Available"
-    today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
-    text = (
-        "🏦 <b>India Business Wallets</b>\n"
-        "Business Wallet Application & Tracking\n\n"
-        "📌 पहले Terms & Conditions पढ़ें, फिर Application शुरू करें।\n\n"
-        f"🕙 <b>Working Hours:</b> {html.escape(working)}\n"
-        f"{status}\n"
-        f"📅 {today}\n\n"
-        "नीचे दिए गए button से जानकारी देखें 👇"
+    first_name = message.from_user.first_name if message.from_user else "User"
+    dashboard_text = await welcome_caption(first_name)
+    await message.answer(
+        dashboard_text,
+        reply_markup=await group_main_menu(bot),
+        parse_mode=ParseMode.HTML,
     )
-    await message.answer(text, reply_markup=await group_main_menu(bot), parse_mode=ParseMode.HTML)
 
 
 async def send_group_privacy_notice(message: Message, bot: Bot, short: bool = False) -> None:
@@ -144,13 +137,7 @@ async def send_group_privacy_notice(message: Message, bot: Bot, short: bool = Fa
 @group_router.message(F.new_chat_members)
 async def bot_added_to_group(message: Message, bot: Bot):
     if any(member.id == bot.id for member in message.new_chat_members):
-        await message.answer(
-            "👋 <b>India Business Wallets Bot group में जुड़ गया है.</b>\n\n"
-            "यहाँ सभी सदस्य Wallet services, fees और Terms देख सकते हैं। "
-            "Documents और निजी जानकारी केवल Bot की Private Chat में submit करें।",
-            reply_markup=await group_main_menu(bot),
-            parse_mode=ParseMode.HTML,
-        )
+        await send_group_dashboard(message, bot)
 
 
 @group_router.message(CommandStart())
