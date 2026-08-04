@@ -99,24 +99,27 @@ async def group_main_menu(bot: Bot) -> InlineKeyboardMarkup:
     me = await bot.get_me()
     private_url = f"https://t.me/{me.username}?start=private"
     channel_url = settings.official_channel or "https://t.me/"
+
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📝 Apply Now", callback_data="g:apply")],
+        [InlineKeyboardButton(text="📝 View Wallet Services", callback_data="g:apply")],
         [
-            InlineKeyboardButton(text="🔍 Track Status", url=private_url),
+            InlineKeyboardButton(text="🔍 Track Privately", url=private_url),
             InlineKeyboardButton(text="📂 My Applications", url=private_url),
         ],
         [
-            InlineKeyboardButton(text="💬 Support", url=private_url),
-            InlineKeyboardButton(text="📜 Terms", callback_data="g:terms"),
+            InlineKeyboardButton(text="📜 Terms & Conditions", callback_data="g:terms"),
         ],
-        [InlineKeyboardButton(text="📢 Official Channel", url=channel_url)],
+        [
+            InlineKeyboardButton(text="💬 Open Private Bot", url=private_url),
+            InlineKeyboardButton(text="📢 Official Channel", url=channel_url),
+        ],
     ])
 
 
 async def send_group_dashboard(message: Message, bot: Bot) -> None:
     first_name = message.from_user.first_name if message.from_user else "User"
     available = (await setting_value("service_available", "true")).lower() == "true"
-    status = "🟢 ONLINE (Active)" if available else "🔴 OFFLINE"
+    status = "🟢 ONLINE (Active)" if available else "🔴 OFFLINE (Unavailable)"
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
 
     dashboard_text = (
@@ -126,7 +129,7 @@ async def send_group_dashboard(message: Message, bot: Bot) -> None:
         "Welcome to our official Bot.\n\n"
         "🔐 Trusted Business Wallet Services\n"
         "Available across India 🇮🇳\n\n"
-        f"<b>Status:</b> {status}\n"
+        f"{status}\n"
         f"📅 <b>Date:</b> {today}\n\n"
         "━━━━━━━━━━━━━━━━\n"
         "📋 पहले Terms जरूर पढ़ें 🔞\n\n"
