@@ -9,6 +9,7 @@ from aiogram.types import FSInputFile, InlineKeyboardButton, InlineKeyboardMarku
 from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
@@ -154,7 +155,18 @@ async def notify_status(application_id: int, status: str):
 
 def build_admin_app():
     app = FastAPI(title="IBW Admin")
+    app.mount("/static", StaticFiles(directory="app/static"), name="static")
     app.add_middleware(SessionMiddleware, secret_key=settings.session_secret, https_only=True, same_site="lax", max_age=43200)
+
+    @app.get("/service-worker.js")
+    async def service_worker():
+        response = FileResponse(
+            "app/static/service-worker.js",
+            media_type="application/javascript",
+        )
+        response.headers["Service-Worker-Allowed"] = "/"
+        response.headers["Cache-Control"] = "no-cache"
+        return response
 
     @app.get("/")
     async def root():
