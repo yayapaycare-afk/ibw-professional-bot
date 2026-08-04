@@ -115,7 +115,24 @@ async def group_main_menu(bot: Bot) -> InlineKeyboardMarkup:
 
 async def send_group_dashboard(message: Message, bot: Bot) -> None:
     first_name = message.from_user.first_name if message.from_user else "User"
-    dashboard_text = await welcome_caption(first_name)
+    available = (await setting_value("service_available", "true")).lower() == "true"
+    status = "🟢 ONLINE (Active)" if available else "🔴 OFFLINE"
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
+
+    dashboard_text = (
+        "🏛 <b>Welcome to IBW Bot</b>\n"
+        "━━━━━━━━━━━━━━━━\n\n"
+        f"👋 Hi {html.escape(first_name)},\n"
+        "Welcome to our official Bot.\n\n"
+        "🔐 Trusted Business Wallet Services\n"
+        "Available across India 🇮🇳\n\n"
+        f"<b>Status:</b> {status}\n"
+        f"📅 <b>Date:</b> {today}\n\n"
+        "━━━━━━━━━━━━━━━━\n"
+        "📋 पहले Terms जरूर पढ़ें 🔞\n\n"
+        "नीचे से Service चुनें 👇"
+    )
+
     await message.answer(
         dashboard_text,
         reply_markup=await group_main_menu(bot),
