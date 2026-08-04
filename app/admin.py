@@ -427,8 +427,87 @@ def build_admin_app():
                 pass
         return RedirectResponse("/admin?deleted=1", 303)
 
+    def file_viewer_html(title: str, raw_url: str, download_url: str, back_url: str, filename: str) -> HTMLResponse:
+        safe_title = html.escape(title)
+        safe_raw = html.escape(raw_url, quote=True)
+        safe_download = html.escape(download_url, quote=True)
+        safe_back = html.escape(back_url, quote=True)
+        safe_name = html.escape(filename)
+        media_type, _ = mimetypes.guess_type(filename)
+        is_pdf = media_type == "application/pdf"
+
+        if is_pdf:
+            preview = f'<iframe class="preview-frame" src="{safe_raw}" title="{safe_title}"></iframe>'
+        else:
+            preview = f'<img class="preview-image" src="{safe_raw}" alt="{safe_title}">'
+
+        page = f'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14213d">
+  <title>{safe_title} - IBW Admin</title>
+  <style>
+    *{{box-sizing:border-box}}
+    body{{margin:0;background:#eef2f7;color:#162033;font-family:Arial,sans-serif;min-height:100vh}}
+    .topbar{{position:sticky;top:0;z-index:10;background:#14213d;color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.2)}}
+    .topbar h1{{font-size:16px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
+    .btn{{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;border:0;border-radius:10px;padding:10px 14px;font-weight:700;font-size:14px;cursor:pointer}}
+    .back{{background:#fff;color:#14213d}}
+    .save{{background:#1877e8;color:#fff}}
+    .wrap{{max-width:1100px;margin:0 auto;padding:14px}}
+    .card{{background:#fff;border-radius:14px;padding:10px;box-shadow:0 6px 22px rgba(16,35,70,.12)}}
+    .filename{{font-size:13px;color:#667085;margin:2px 4px 10px;word-break:break-all}}
+    .preview-image{{display:block;max-width:100%;height:auto;max-height:calc(100vh - 145px);margin:auto;border-radius:8px;object-fit:contain}}
+    .preview-frame{{display:block;width:100%;height:calc(100vh - 145px);border:0;border-radius:8px;background:#fff}}
+    @media(max-width:520px){{.topbar{{padding:10px}}.btn{{padding:9px 11px}}.wrap{{padding:8px}}.card{{padding:7px}}}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="btn back" href="{safe_back}" onclick="if(history.length>1){{event.preventDefault();history.back();}}">← Back</a>
+    <h1>{safe_title}</h1>
+    <a class="btn save" href="{safe_download}">⬇ Save</a>
+  </header>
+  <main class="wrap">
+    <div class="card">
+      <div class="filename">{safe_name}</div>
+      {preview}
+    </div>
+  </main>
+</body>
+</html>'''
+        response = HTMLResponse(page)
+        response.headers["Cache-Control"] = "private, no-store, max-age=0"
+        return response
+
+    def downloadable_file_response(path: str) -> FileResponse:
+        media_type, _ = mimetypes.guess_type(path)
+        response = FileResponse(
+            path,
+            media_type=media_type or "application/octet-stream",
+            filename=os.path.basename(path),
+            content_disposition_type="attachment",
+        )
+        response.headers["Cache-Control"] = "private, no-store, max-age=0"
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        return response
+
     @app.get("/admin/file/{sid}")
-    async def private_file(request: Request, sid: int):
+    async def private_file_viewer(request: Request, sid: int):
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/file/{sid}", 303)
+        async with Session() as session:
+            sub = await session.get(Submission, sid)
+        resolved = resolve_stored_file(sub.file_path if sub else None)
+        if not resolved:
+            raise HTTPException(404, "Document file is unavailable on server storage")
+        back_url = f"/admin/application/{sub.application_id}" if sub else "/admin"
+        return file_viewer_html("Submitted Document", f"/admin/file/{sid}/raw", f"/admin/file/{sid}/download", back_url, os.path.basename(resolved))
+
+    @app.get("/admin/file/{sid}/raw")
+    async def private_file_raw(request: Request, sid: int):
         if not auth(request):
             return RedirectResponse(f"/login?next=/admin/file/{sid}", 303)
         async with Session() as session:
@@ -438,8 +517,30 @@ def build_admin_app():
             raise HTTPException(404, "Document file is unavailable on server storage")
         return protected_file_response(resolved)
 
+    @app.get("/admin/file/{sid}/download")
+    async def private_file_download(request: Request, sid: int):
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/file/{sid}", 303)
+        async with Session() as session:
+            sub = await session.get(Submission, sid)
+        resolved = resolve_stored_file(sub.file_path if sub else None)
+        if not resolved:
+            raise HTTPException(404, "Document file is unavailable on server storage")
+        return downloadable_file_response(resolved)
+
     @app.get("/admin/receipt/{aid}")
-    async def receipt(request: Request, aid: int):
+    async def receipt_viewer(request: Request, aid: int):
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/receipt/{aid}", 303)
+        async with Session() as session:
+            application = await session.get(Application, aid)
+        resolved = resolve_stored_file(application.receipt_file if application else None)
+        if not resolved:
+            raise HTTPException(404, "Payment receipt is unavailable on server storage")
+        return file_viewer_html("Initial Payment Receipt", f"/admin/receipt/{aid}/raw", f"/admin/receipt/{aid}/download", f"/admin/application/{aid}", os.path.basename(resolved))
+
+    @app.get("/admin/receipt/{aid}/raw")
+    async def receipt_raw(request: Request, aid: int):
         if not auth(request):
             return RedirectResponse(f"/login?next=/admin/receipt/{aid}", 303)
         async with Session() as session:
@@ -449,8 +550,30 @@ def build_admin_app():
             raise HTTPException(404, "Payment receipt is unavailable on server storage")
         return protected_file_response(resolved)
 
+    @app.get("/admin/receipt/{aid}/download")
+    async def receipt_download(request: Request, aid: int):
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/receipt/{aid}", 303)
+        async with Session() as session:
+            application = await session.get(Application, aid)
+        resolved = resolve_stored_file(application.receipt_file if application else None)
+        if not resolved:
+            raise HTTPException(404, "Payment receipt is unavailable on server storage")
+        return downloadable_file_response(resolved)
+
     @app.get("/admin/final-receipt/{aid}")
-    async def final_receipt(request: Request, aid: int):
+    async def final_receipt_viewer(request: Request, aid: int):
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/final-receipt/{aid}", 303)
+        async with Session() as session:
+            payment = (await session.scalars(select(FinalPayment).where(FinalPayment.application_id == aid))).first()
+        resolved = resolve_stored_file(payment.receipt_file if payment else None)
+        if not resolved:
+            raise HTTPException(404, "Final payment receipt is unavailable on server storage")
+        return file_viewer_html("Final Payment Receipt", f"/admin/final-receipt/{aid}/raw", f"/admin/final-receipt/{aid}/download", f"/admin/application/{aid}", os.path.basename(resolved))
+
+    @app.get("/admin/final-receipt/{aid}/raw")
+    async def final_receipt_raw(request: Request, aid: int):
         if not auth(request):
             return RedirectResponse(f"/login?next=/admin/final-receipt/{aid}", 303)
         async with Session() as session:
@@ -459,5 +582,16 @@ def build_admin_app():
         if not resolved:
             raise HTTPException(404, "Final payment receipt is unavailable on server storage")
         return protected_file_response(resolved)
+
+    @app.get("/admin/final-receipt/{aid}/download")
+    async def final_receipt_download(request: Request, aid: int):
+        if not auth(request):
+            return RedirectResponse(f"/login?next=/admin/final-receipt/{aid}", 303)
+        async with Session() as session:
+            payment = (await session.scalars(select(FinalPayment).where(FinalPayment.application_id == aid))).first()
+        resolved = resolve_stored_file(payment.receipt_file if payment else None)
+        if not resolved:
+            raise HTTPException(404, "Final payment receipt is unavailable on server storage")
+        return downloadable_file_response(resolved)
 
     return app
