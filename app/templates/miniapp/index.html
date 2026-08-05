@@ -3,87 +3,125 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#14213d">
-  <title>{{ business_name }}</title>
-  <link rel="stylesheet" href="/static/miniapp/miniapp.css">
+  <meta name="theme-color" content="#0f2d56">
+  <title>{{ business_name }} Portal</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="/static/miniapp/miniapp.css?v=2">
 </head>
 <body>
-  <main class="app-shell">
+  <div class="app-shell">
     <header class="hero">
       <div class="brand-mark">IBW</div>
-      <div>
-        <p class="eyebrow">Official Mini App</p>
+      <div class="hero-copy">
+        <p class="eyebrow">Official Service Portal</p>
         <h1>{{ business_name }}</h1>
-        <p class="hero-copy">Trusted Business Wallet Services across India 🇮🇳</p>
+        <p>Trusted Business Wallet Services across India 🇮🇳</p>
       </div>
+      <span id="serviceBadge" class="status-badge">Checking…</span>
     </header>
 
-    <section id="telegramNotice" class="notice hidden" aria-live="polite"></section>
+    <div id="telegramNotice" class="notice hidden" role="status"></div>
 
-    <section class="welcome-card">
-      <div>
-        <p class="muted">Welcome</p>
-        <h2 id="welcomeName">User</h2>
-      </div>
-      <span class="status-pill">● ONLINE</span>
-    </section>
-
-    <nav class="quick-grid" aria-label="Mini App sections">
-      <button type="button" class="quick-card" data-view="wallets"><span>💼</span><b>Wallet Services</b><small>Fees & documents</small></button>
-      <button type="button" class="quick-card" id="applyButton"><span>📝</span><b>Apply Now</b><small>Continue in Bot</small></button>
-      <button type="button" class="quick-card" data-view="applications"><span>📂</span><b>My Applications</b><small>Current status</small></button>
-      <button type="button" class="quick-card" data-view="track"><span>🔍</span><b>Track Status</b><small>Application ID</small></button>
-      <button type="button" class="quick-card" data-view="terms"><span>📜</span><b>Terms</b><small>Read before apply</small></button>
-      <button type="button" class="quick-card" data-view="support"><span>💬</span><b>Support</b><small>Authorized help</small></button>
+    <nav class="quick-grid" aria-label="Portal sections">
+      <button type="button" class="quick-card primary" data-view="services"><span>💼</span><b>Apply Now</b><small>Choose a wallet</small></button>
+      <button type="button" class="quick-card" data-view="applications"><span>📂</span><b>My Applications</b><small>View live status</small></button>
+      <button type="button" class="quick-card" data-view="track"><span>🔍</span><b>Track Status</b><small>Use Application ID</small></button>
+      <button type="button" class="quick-card" data-view="support"><span>💬</span><b>Support</b><small>Get assistance</small></button>
     </nav>
 
-    <section id="walletsView" class="view-section">
-      <div class="section-heading"><div><p class="muted">Available Services</p><h2>Business Wallets</h2></div><button type="button" class="text-button" data-refresh-wallets>Refresh</button></div>
-      <div id="walletList" class="wallet-list"><div class="loading">Loading wallet services…</div></div>
-    </section>
+    <main>
+      <section id="homeView" class="view-section">
+        <div class="welcome-card">
+          <div>
+            <p class="eyebrow">Welcome</p>
+            <h2>Hi, <span id="welcomeName">User</span> 👋</h2>
+            <p>Services, documents, payment submission and application tracking—everything is available inside this portal.</p>
+          </div>
+          <button type="button" class="primary-btn" data-view="services">Start Application</button>
+        </div>
+        <div class="info-strip">
+          <div><b id="workingHours">—</b><span>Working Hours</span></div>
+          <div><b>Private & Secure</b><span>Telegram verified access</span></div>
+        </div>
+      </section>
 
-    <section id="applicationsView" class="view-section hidden">
-      <div class="section-heading"><div><p class="muted">Your records</p><h2>My Applications</h2></div><button type="button" class="text-button" data-refresh-applications>Refresh</button></div>
-      <div id="applicationsList" class="application-list"></div>
-    </section>
+      <section id="servicesView" class="view-section hidden">
+        <div class="section-head">
+          <div><p class="eyebrow">Available Services</p><h2>Choose Business Wallet</h2></div>
+          <button type="button" class="text-btn" id="refreshWallets">Refresh</button>
+        </div>
+        <div id="walletList" class="wallet-list"><div class="skeleton">Loading services…</div></div>
+      </section>
 
-    <section id="trackView" class="view-section hidden">
-      <p class="muted">Secure tracking</p><h2>Track Application</h2>
-      <label for="applicationId">Application ID</label>
-      <input id="applicationId" type="text" placeholder="IBW-2026-000001" autocomplete="off">
-      <button id="trackButton" type="button" class="primary-button">Track Status</button>
-      <div id="trackResult" class="result-box hidden" aria-live="polite"></div>
-    </section>
+      <section id="applyView" class="view-section hidden">
+        <button type="button" class="back-btn" data-view="services">← Back to Services</button>
+        <div id="applyContent"></div>
+      </section>
 
-    <section id="termsView" class="view-section hidden">
-      <p class="muted">Important information</p><h2>Terms & Conditions</h2>
-      <div class="terms-box">{{ terms_text }}</div>
-    </section>
+      <section id="successView" class="view-section hidden">
+        <div class="success-card">
+          <div class="success-icon">✓</div>
+          <p class="eyebrow">Submitted Successfully</p>
+          <h2>Your application is received</h2>
+          <p id="successWallet"></p>
+          <div class="application-code" id="successCode"></div>
+          <p>Application ID सुरक्षित रखें। आगे के updates Telegram Bot पर मिलेंगे।</p>
+          <button type="button" class="primary-btn" data-view="applications">View My Applications</button>
+        </div>
+      </section>
 
-    <section id="supportView" class="view-section hidden">
-      <p class="muted">Authorized assistance</p><h2>Customer Support</h2>
-      <p>Extra charges, payment confusion या application help के लिए केवल official support का उपयोग करें।</p>
-      <div class="action-stack">
-        {% if whatsapp_number %}<a class="primary-button link-button" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener">Open WhatsApp Support</a>{% endif %}
-        {% if official_channel %}<a class="secondary-button link-button" href="{{ official_channel }}" target="_blank" rel="noopener">Open Official Channel</a>{% endif %}
-      </div>
-    </section>
+      <section id="applicationsView" class="view-section hidden">
+        <div class="section-head">
+          <div><p class="eyebrow">Your Records</p><h2>My Applications</h2></div>
+          <button type="button" class="text-btn" id="refreshApplications">Refresh</button>
+        </div>
+        <div id="applicationsList"><div class="skeleton">Loading applications…</div></div>
+      </section>
 
-    <section id="applyView" class="view-section hidden">
-      <p class="muted">Safe application flow</p><h2>Continue in Private Bot</h2>
-      <p>Mini App बंद होने के बाद Bot chat में <b>/apply</b> command tap करें। आपकी existing application process, fees और documents बिल्कुल same रहेंगे।</p>
-      <button id="closeMiniApp" type="button" class="primary-button">Close Mini App & Open Bot Chat</button>
-    </section>
-  </main>
+      <section id="trackView" class="view-section hidden">
+        <div class="panel">
+          <p class="eyebrow">Secure Tracking</p>
+          <h2>Track Application</h2>
+          <label for="applicationId">Application ID</label>
+          <input id="applicationId" type="text" placeholder="IBW-2026-000001" autocomplete="off">
+          <button type="button" class="primary-btn" id="trackButton">Track Status</button>
+          <div id="trackResult" class="result-box hidden" aria-live="polite"></div>
+        </div>
+      </section>
 
-  <script>
-    window.IBW_CONFIG = {
-      businessName: {{ business_name|tojson }},
-      officialChannel: {{ official_channel|tojson }},
-      whatsappNumber: {{ whatsapp_number|tojson }}
-    };
-  </script>
-  <script src="/static/miniapp/miniapp.js" defer></script>
+      <section id="finalPaymentView" class="view-section hidden">
+        <button type="button" class="back-btn" data-view="applications">← Back to Applications</button>
+        <div id="finalPaymentContent"></div>
+      </section>
+
+      <section id="supportView" class="view-section hidden">
+        <div class="panel">
+          <p class="eyebrow">Help & Safety</p>
+          <h2>Customer Support</h2>
+          <p>Documents केवल इस Telegram Mini App या Bot की private chat में submit करें। OTP, UPI PIN, password और card PIN कभी share न करें।</p>
+          <div class="support-actions">
+            {% if whatsapp_number %}<a class="primary-btn link-btn" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener">WhatsApp Support</a>{% endif %}
+            {% if official_channel %}<a class="secondary-btn link-btn" href="{{ official_channel }}" target="_blank" rel="noopener">Official Channel</a>{% endif %}
+          </div>
+          <hr>
+          <h3>Terms & Conditions</h3>
+          <ul class="terms-list">
+            <li>Payment करने से पहले UPI App में Banking Name verify करें।</li>
+            <li>किसी agent को extra payment न करें।</li>
+            <li>Incorrect या unclear documents से application delay/reject हो सकती है।</li>
+            <li>Wallet ready होने के बाद remaining payment पूरा करना आवश्यक है।</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="bottom-nav">
+      <button type="button" data-view="home" class="active"><span>⌂</span>Home</button>
+      <button type="button" data-view="services"><span>＋</span>Apply</button>
+      <button type="button" data-view="applications"><span>▣</span>Applications</button>
+      <button type="button" data-view="support"><span>?</span>Support</button>
+    </footer>
+  </div>
+  <script src="/static/miniapp/miniapp.js?v=2"></script>
 </body>
 </html>
