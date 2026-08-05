@@ -18,6 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from app.config import get_settings
 from app.db import Session
 from app.models import Wallet, DocumentRule, Application, Submission, User, SystemSetting, FinalPayment, Rating, StatusEvent
+from app.miniapp import register_miniapp_routes
 
 settings = get_settings()
 templates = Jinja2Templates(directory="app/templates")
@@ -261,6 +262,8 @@ def build_admin_app():
         same_site="lax",
         max_age=43200,
     )
+
+    register_miniapp_routes(app)
 
     @app.middleware("http")
     async def prevent_private_page_cache(request: Request, call_next):
