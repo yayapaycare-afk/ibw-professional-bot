@@ -477,7 +477,7 @@ def build_admin_app():
 
 
     @app.post("/admin/application/{aid}/delete")
-    async def delete_application(request: Request, aid: int, confirm_application_id: str = Form(...)):
+    async def delete_application(request: Request, aid: int):
         if not auth(request):
             raise HTTPException(403)
         paths: list[str] = []
@@ -485,10 +485,6 @@ def build_admin_app():
             application = await session.get(Application, aid, with_for_update=True)
             if not application:
                 raise HTTPException(404)
-            expected = application.application_id or f"DRAFT-{application.id}"
-            if confirm_application_id.strip().upper() != expected.upper():
-                return RedirectResponse(f"/admin/application/{aid}?delete_error=1", 303)
-
             submissions = (await session.scalars(select(Submission).where(Submission.application_id == aid))).all()
             paths.extend(x.file_path for x in submissions if x.file_path)
             if application.receipt_file:
