@@ -399,17 +399,20 @@ async def wallet_details(callback: CallbackQuery):
 
 @router.callback_query(F.data.startswith("continue:"))
 async def continue_application(callback: CallbackQuery, state: FSMContext):
+    """Start an application in FSM only; no database draft is created."""
     wallet_id = int(callback.data.split(":", 1)[1])
     async with Session() as session:
         wallet = await session.get(Wallet, wallet_id)
         if not wallet or not wallet.active:
             await callback.answer("Wallet unavailable.", show_alert=True)
             return
-        app = Application(user_id=callback.from_user.id, wallet_id=wallet_id, status="DOCUMENTS_PENDING", amount_due=round(wallet.total_fee * wallet.initial_percent / 100))
-        session.add(app)
-        await session.commit()
-        await session.refresh(app)
-    await state.update_data(app_db_id=app.id, wallet_id=wallet_id, doc_index=0)
+
+    await state.clear()
+    await state.update_data(
+        wallet_id=wallet_id,
+        doc_index=0,
+        pending_submissions=[],
+    )
     await callback.answer()
     await ask_next_document(callback.message, state)
 
@@ -490,16 +493,49 @@ def validate_manual(kind: str, value: str) -> str | None:
     return None
 
 
-async def save_submission(state: FSMContext, method: str, manual_value: str | None = None, file_path: str | None = None):
+async def save_submission(
+    state: FSMContext,
+    method: str,
+    manual_value: str | None = None,
+    file_path: str | None = None,
+):
+    """Keep document data in the user's FSM until final submission.
+
+    This prevents abandoned flows from creating database Draft applications.
+    """
     data = await state.get_data()
-    async with Session() as session:
-        existing = (await session.scalars(select(Submission).where(Submission.application_id == data["app_db_id"], Submission.document_rule_id == data["current_doc_id"]))).first()
-        if existing:
-            existing.method = method; existing.manual_value = manual_value; existing.file_path = file_path
-        else:
-            session.add(Submission(application_id=data["app_db_id"], document_rule_id=data["current_doc_id"], method=method, manual_value=manual_value, file_path=file_path))
-        await session.commit()
-    await state.update_data(doc_index=data.get("doc_index", 0) + 1)
+    current_doc_id = data.get("current_doc_id")
+    if not current_doc_id:
+        raise RuntimeError("Document context is missing. Please restart the application.")
+
+    pending = list(data.get("pending_submissions") or [])
+    item = {
+        "document_rule_id": int(current_doc_id),
+        "method": method,
+        "manual_value": manual_value,
+        "file_path": file_path,
+    }
+
+    replaced = False
+    for index, existing in enumerate(pending):
+        if int(existing.get("document_rule_id", 0)) == int(current_doc_id):
+            old_path = existing.get("file_path")
+            if old_path and old_path != file_path:
+                try:
+                    if os.path.isfile(old_path):
+                        os.remove(old_path)
+                except OSError:
+                    pass
+            pending[index] = item
+            replaced = True
+            break
+    if not replaced:
+        pending.append(item)
+
+    await state.update_data(
+        pending_submissions=pending,
+        doc_index=data.get("doc_index", 0) + 1,
+    )
 
 
 @router.message(Flow.document_input)
@@ -556,24 +592,28 @@ async def bank_ifsc(message: Message, state: FSMContext):
 
 async def show_initial_payment(message: Message, state: FSMContext):
     data = await state.get_data()
+    wallet_id = data.get("wallet_id")
     async with Session() as session:
-        app = await session.get(Application, data["app_db_id"])
-        wallet = await session.get(Wallet, app.wallet_id)
-        app.status = "INITIAL_PAYMENT_PENDING"
-        await session.commit()
-    remaining = max(wallet.total_fee - app.amount_due, 0)
+        wallet = await session.get(Wallet, wallet_id) if wallet_id else None
+    if not wallet or not wallet.active:
+        await state.clear()
+        await message.answer("Wallet unavailable. Please start again.", reply_markup=main_menu())
+        return
+
+    amount_due = round(wallet.total_fee * wallet.initial_percent / 100)
+    remaining = max(wallet.total_fee - amount_due, 0)
     text = (
         f"💳 <b>First Payment</b>\n\n"
         f"🏦 Wallet: {html.escape(wallet.name)}\n"
         f"💰 Total Fee: ₹{wallet.total_fee}\n"
-        f"📥 Pay Now ({wallet.initial_percent}%): ₹{app.amount_due}\n"
+        f"📥 Pay Now ({wallet.initial_percent}%): ₹{amount_due}\n"
         f"💵 Remaining: ₹{remaining}\n"
         f"🏷 Banking Name: <b>{html.escape(wallet.banking_name or 'Not configured')}</b>\n\n"
         f"UPI ID: <code>{html.escape(wallet.upi_id or 'Admin will provide')}</code>\n\n"
         "Payment karne se pehle UPI app mein Banking Name verify karein."
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ I Have Made the Payment", callback_data=f"initial-paid:{app.id}")],
+        [InlineKeyboardButton(text="✅ I Have Made the Payment", callback_data="initial-paid")],
         [InlineKeyboardButton(text="🔙 Back", callback_data="apply"), InlineKeyboardButton(text="🏠 Main Menu", callback_data="home")],
     ])
     if wallet.qr_file and os.path.exists(wallet.qr_file):
@@ -582,10 +622,12 @@ async def show_initial_payment(message: Message, state: FSMContext):
         await message.answer(text, reply_markup=kb)
 
 
-@router.callback_query(F.data.startswith("initial-paid:"))
+@router.callback_query(F.data == "initial-paid")
 async def initial_paid(callback: CallbackQuery, state: FSMContext):
-    app_id = int(callback.data.split(":", 1)[1])
-    await state.update_data(app_db_id=app_id)
+    data = await state.get_data()
+    if not data.get("wallet_id") or not data.get("pending_submissions"):
+        await callback.answer("Application session expired. Please start again.", show_alert=True)
+        return
     await state.set_state(Flow.initial_utr)
     await callback.message.answer("Payment ka UTR/Transaction Reference Number enter karein:", reply_markup=navigation())
     await callback.answer()
@@ -618,14 +660,45 @@ async def initial_receipt(message: Message, state: FSMContext, bot: Bot):
     path = os.path.join(settings.storage_dir, f"receipt_{uuid.uuid4().hex}{ext}")
     await bot.download(file_obj.file_id, destination=path)
     data = await state.get_data()
+    wallet_id = data.get("wallet_id")
+    pending_submissions = list(data.get("pending_submissions") or [])
+    if not wallet_id or not pending_submissions:
+        try:
+            if os.path.isfile(path):
+                os.remove(path)
+        except OSError:
+            pass
+        await state.clear()
+        await message.answer("Application session expired. Please start again.", reply_markup=main_menu())
+        return
+
     async with Session() as session:
-        app = await session.get(Application, data["app_db_id"])
-        app.utr = data["initial_utr"]
-        app.receipt_file = path
-        app.status = "PAYMENT_UNDER_VERIFICATION"
-        if not app.application_id:
-            app.application_id = f"IBW-{datetime.now(ZoneInfo('Asia/Kolkata')).year}-{app.id:06d}"
-        wallet = await session.get(Wallet, app.wallet_id)
+        wallet = await session.get(Wallet, wallet_id)
+        if not wallet or not wallet.active:
+            raise RuntimeError("Selected wallet is no longer available.")
+
+        # Create the application only after all documents, UTR and receipt exist.
+        app = Application(
+            user_id=message.from_user.id,
+            wallet_id=wallet_id,
+            status="PAYMENT_UNDER_VERIFICATION",
+            amount_due=round(wallet.total_fee * wallet.initial_percent / 100),
+            utr=data["initial_utr"],
+            receipt_file=path,
+        )
+        session.add(app)
+        await session.flush()
+        app.application_id = f"IBW-{datetime.now(ZoneInfo('Asia/Kolkata')).year}-{app.id:06d}"
+
+        for item in pending_submissions:
+            session.add(Submission(
+                application_id=app.id,
+                document_rule_id=int(item["document_rule_id"]),
+                method=item["method"],
+                manual_value=item.get("manual_value"),
+                file_path=item.get("file_path"),
+            ))
+
         await session.commit()
         await session.refresh(app)
     wa_text = f"Hello, I submitted my {wallet.name} application. Application ID: {app.application_id}. Please check it."
@@ -698,7 +771,7 @@ async def final_receipt(message: Message, state: FSMContext, bot: Bot):
 @router.callback_query(F.data == "mine")
 async def mine(callback: CallbackQuery):
     async with Session() as session:
-        rows = (await session.execute(select(Application, Wallet).join(Wallet, Wallet.id == Application.wallet_id).where(Application.user_id == callback.from_user.id).order_by(Application.id.desc()).limit(20))).all()
+        rows = (await session.execute(select(Application, Wallet).join(Wallet, Wallet.id == Application.wallet_id).where(Application.user_id == callback.from_user.id, Application.application_id.is_not(None)).order_by(Application.id.desc()).limit(20))).all()
     if not rows:
         text = "📂 <b>My Applications</b>\n\nNo applications found."
     else:

@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
@@ -190,6 +190,67 @@ async def notify_status(application_id: int, status: str):
         await bot.session.close()
 
 
+
+async def send_custom_message_to_user(application_id: int, message_text: str) -> None:
+    """Send a plain-text admin message without changing application status."""
+    if not settings.bot_token:
+        raise RuntimeError("BOT_TOKEN is not configured")
+
+    async with Session() as session:
+        application = await session.get(Application, application_id)
+        if not application:
+            raise RuntimeError("Application not found")
+        telegram_id = application.user_id
+
+    bot = Bot(settings.bot_token)
+    try:
+        await bot.send_message(telegram_id, message_text)
+    finally:
+        await bot.session.close()
+
+
+async def remove_legacy_drafts(session) -> int:
+    """Delete old pre-fix draft rows and their child records/files."""
+    drafts = (await session.scalars(
+        select(Application).where(Application.application_id.is_(None))
+    )).all()
+    if not drafts:
+        return 0
+
+    paths: list[str] = []
+    for application in drafts:
+        submissions = (await session.scalars(
+            select(Submission).where(Submission.application_id == application.id)
+        )).all()
+        paths.extend(item.file_path for item in submissions if item.file_path)
+        if application.receipt_file:
+            paths.append(application.receipt_file)
+
+        final_payment = (await session.scalars(
+            select(FinalPayment).where(FinalPayment.application_id == application.id)
+        )).first()
+        if final_payment and final_payment.receipt_file:
+            paths.append(final_payment.receipt_file)
+
+        for model in (Submission, FinalPayment, Rating, StatusEvent):
+            rows = (await session.scalars(
+                select(model).where(model.application_id == application.id)
+            )).all()
+            for row in rows:
+                await session.delete(row)
+        await session.delete(application)
+
+    await session.commit()
+
+    for stored_path in paths:
+        resolved = resolve_stored_file(stored_path)
+        if resolved:
+            try:
+                os.remove(resolved)
+            except OSError:
+                pass
+    return len(drafts)
+
 def build_admin_app():
     app = FastAPI(title="IBW Admin")
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -250,17 +311,19 @@ def build_admin_app():
     async def dashboard(request: Request):
         if not auth(request): return RedirectResponse("/login", 303)
         async with Session() as session:
+            removed_drafts = await remove_legacy_drafts(session)
+            genuine = Application.application_id.is_not(None)
             counts = {
-                "applications": await session.scalar(select(func.count(Application.id))) or 0,
-                "pending": await session.scalar(select(func.count(Application.id)).where(Application.status.in_(["PAYMENT_UNDER_VERIFICATION", "FINAL_PAYMENT_UNDER_VERIFICATION"]))) or 0,
+                "applications": await session.scalar(select(func.count(Application.id)).where(genuine)) or 0,
+                "pending": await session.scalar(select(func.count(Application.id)).where(genuine, Application.status.in_(["PAYMENT_UNDER_VERIFICATION", "FINAL_PAYMENT_UNDER_VERIFICATION"]))) or 0,
                 "wallets": await session.scalar(select(func.count(Wallet.id))) or 0,
-                "completed": await session.scalar(select(func.count(Application.id)).where(Application.status == "COMPLETED")) or 0,
+                "completed": await session.scalar(select(func.count(Application.id)).where(genuine, Application.status == "COMPLETED")) or 0,
             }
-            apps = (await session.execute(select(Application, Wallet, User).join(Wallet, Wallet.id == Application.wallet_id).join(User, User.telegram_id == Application.user_id).order_by(Application.id.desc()).limit(30))).all()
+            apps = (await session.execute(select(Application, Wallet, User).join(Wallet, Wallet.id == Application.wallet_id).join(User, User.telegram_id == Application.user_id).where(genuine).order_by(Application.id.desc()).limit(30))).all()
             avg_rating = await session.scalar(select(func.avg(Rating.stars))) or 0
             working_hours = await get_setting(session, "working_hours", "10:00 AM – 9:30 PM")
             service_available = (await get_setting(session, "service_available", "true")) == "true"
-        return templates.TemplateResponse("dashboard.html", {"request": request, "counts": counts, "apps": apps, "avg_rating": round(float(avg_rating), 1), "working_hours": working_hours, "service_available": service_available})
+        return templates.TemplateResponse("dashboard.html", {"request": request, "counts": counts, "apps": apps, "avg_rating": round(float(avg_rating), 1), "working_hours": working_hours, "service_available": service_available, "removed_drafts": removed_drafts})
 
     @app.get("/admin/settings", response_class=HTMLResponse)
     async def settings_page(request: Request):
@@ -389,6 +452,29 @@ def build_admin_app():
             try: await notify_status(aid, status)
             except Exception as exc: print(f"Notification error for application {aid}: {exc}")
         return RedirectResponse(f"/admin/application/{aid}?updated={'1' if changed else '0'}", 303)
+
+    @app.post("/admin/application/{aid}/message")
+    async def custom_message(request: Request, aid: int, message_text: str = Form(...)):
+        if not auth(request):
+            raise HTTPException(403)
+        message_text = message_text.strip()
+        if not message_text:
+            return RedirectResponse(f"/admin/application/{aid}?message_error=empty", 303)
+        if len(message_text) > 3500:
+            return RedirectResponse(f"/admin/application/{aid}?message_error=long", 303)
+
+        async with Session() as session:
+            application = await session.get(Application, aid)
+            if not application or not application.application_id:
+                raise HTTPException(404)
+
+        try:
+            await send_custom_message_to_user(aid, message_text)
+        except Exception as exc:
+            print(f"Custom message error for application {aid}: {exc}")
+            return RedirectResponse(f"/admin/application/{aid}?message_error=send", 303)
+        return RedirectResponse(f"/admin/application/{aid}?message_sent=1", 303)
+
 
     @app.post("/admin/application/{aid}/delete")
     async def delete_application(request: Request, aid: int, confirm_application_id: str = Form(...)):
