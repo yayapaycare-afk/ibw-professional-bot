@@ -386,6 +386,122 @@ async def start(message: Message, state: FSMContext):
     await send_home(message)
 
 
+
+
+async def send_wallet_list_message(message: Message) -> None:
+    async with Session() as session:
+        wallets = (await session.scalars(
+            select(Wallet).where(Wallet.active.is_(True)).order_by(Wallet.sort_order, Wallet.id)
+        )).all()
+    if not wallets:
+        await message.answer("Abhi koi wallet service available nahi hai.", reply_markup=navigation())
+        return
+    rows = [[InlineKeyboardButton(text=f"🏦 {w.name}", callback_data=f"wallet:{w.id}")] for w in wallets]
+    rows.append([
+        InlineKeyboardButton(text="🔙 Back", callback_data="home"),
+        InlineKeyboardButton(text="🏠 Main Menu", callback_data="home"),
+    ])
+    await message.answer(
+        "🏦 <b>Select a Business Wallet</b>",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        parse_mode=ParseMode.HTML,
+    )
+
+
+async def send_my_applications_message(message: Message) -> None:
+    async with Session() as session:
+        rows = (await session.execute(
+            select(Application, Wallet)
+            .join(Wallet, Wallet.id == Application.wallet_id)
+            .where(
+                Application.user_id == message.from_user.id,
+                Application.application_id.is_not(None),
+            )
+            .order_by(Application.id.desc())
+            .limit(20)
+        )).all()
+    if not rows:
+        text = "📂 <b>My Applications</b>\n\nNo applications found."
+    else:
+        text = "📂 <b>My Applications</b>\n\n" + "\n".join(
+            f"• <code>{a.application_id}</code> — {html.escape(w.name)} — {a.status.replace('_', ' ').title()}"
+            for a, w in rows
+        )
+    await message.answer(text, reply_markup=navigation(), parse_mode=ParseMode.HTML)
+
+
+async def send_support_message(message: Message) -> None:
+    if settings.whatsapp_number:
+        url = f"https://wa.me/{settings.whatsapp_number}"
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💬 Contact Support on WhatsApp", url=url)],
+            [
+                InlineKeyboardButton(text="🔙 Back", callback_data="home"),
+                InlineKeyboardButton(text="🏠 Main Menu", callback_data="home"),
+            ],
+        ])
+        await message.answer(
+            "Authorized support se contact karne ke liye neeche button use karein.",
+            reply_markup=kb,
+        )
+    else:
+        await message.answer("Support number abhi configured nahi hai.", reply_markup=navigation())
+
+
+@router.message(Command("apply"))
+@router.message(Command("wallets"))
+async def command_apply(message: Message, state: FSMContext):
+    await state.clear()
+    await ensure_user(message)
+    await send_wallet_list_message(message)
+
+
+@router.message(Command("track"))
+async def command_track(message: Message, state: FSMContext):
+    await ensure_user(message)
+    await state.set_state(Flow.track)
+    await message.answer("Application ID enter karein:", reply_markup=navigation())
+
+
+@router.message(Command("applications"))
+async def command_applications(message: Message, state: FSMContext):
+    await state.clear()
+    await ensure_user(message)
+    await send_my_applications_message(message)
+
+
+@router.message(Command("terms"))
+async def command_terms(message: Message, state: FSMContext):
+    await state.clear()
+    await ensure_user(message)
+    await message.answer(TERMS_TEXT, reply_markup=navigation())
+
+
+@router.message(Command("support"))
+async def command_support(message: Message, state: FSMContext):
+    await state.clear()
+    await ensure_user(message)
+    await send_support_message(message)
+
+
+@router.message(Command("help"))
+async def command_help(message: Message, state: FSMContext):
+    await state.clear()
+    await ensure_user(message)
+    text = (
+        "🆘 <b>IBW Bot Help</b>\n\n"
+        "/start — Open IBW Bot\n"
+        "/apply — Apply for Business Wallet\n"
+        "/track — Track Application Status\n"
+        "/applications — View My Applications\n"
+        "/wallets — View Available Wallet Services\n"
+        "/terms — Read Terms and Conditions\n"
+        "/support — Contact Customer Support\n"
+        "/help — Get Help"
+    )
+    await message.answer(text, reply_markup=main_menu(), parse_mode=ParseMode.HTML)
+
+
 @router.message(Command("cancel"))
 async def cancel(message: Message, state: FSMContext):
     await state.clear()
