@@ -129,13 +129,8 @@
 <div class="card danger-zone">
   <h2>🗑 Permanently Delete Application</h2>
   <p class="muted">This permanently removes the application, uploaded documents, receipts, UTR records, status history and rating. This action cannot be undone.</p>
-  {% if request.query_params.get('delete_error') %}
-  <p class="warning">Application ID did not match. Nothing was deleted.</p>
-  {% endif %}
-  <form method="post" action="/admin/application/{{ a.id }}/delete" onsubmit="return confirm('This action cannot be undone. Permanently delete this application?')">
-    <label>Type Application ID to confirm</label>
-    <input name="confirm_application_id" placeholder="{{ a.application_id or 'DRAFT-' ~ a.id }}" required>
-    <button class="danger">Permanently Delete</button>
+  <form method="post" action="/admin/application/{{ a.id }}/delete" onsubmit="return confirm('⚠️ Permanently delete this application and all related documents, receipts, UTR records, status history and rating? This action cannot be undone.');">
+    <button type="submit" class="danger">Permanently Delete</button>
   </form>
 </div>
 
