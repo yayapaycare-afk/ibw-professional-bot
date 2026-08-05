@@ -159,15 +159,6 @@ async def group_start(message: Message, bot: Bot):
     await send_group_dashboard(message, bot)
 
 
-@group_router.message(F.photo | F.document)
-async def group_document_guard(message: Message, bot: Bot):
-    try:
-        await message.delete()
-    except Exception:
-        pass
-    await send_group_privacy_notice(message, bot, short=True)
-
-
 @group_router.callback_query(F.data == "g:apply")
 async def group_apply(callback: CallbackQuery, bot: Bot):
     async with Session() as session:
@@ -206,10 +197,39 @@ async def group_wallet_details(callback: CallbackQuery, bot: Bot):
         "🔐 Application और Documents submit करने के लिए Bot को Private Chat में खोलें।"
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🔒 Continue Application Privately", url=private_url)],
+        [InlineKeyboardButton(text="✅ Continue Application", callback_data=f"g:continue:{wallet_id}")],
         [InlineKeyboardButton(text="🔙 Back", callback_data="g:apply"), InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")],
     ])
     await callback.message.answer(text, reply_markup=kb, parse_mode=ParseMode.HTML)
+    await callback.answer()
+
+
+@group_router.callback_query(F.data.startswith("g:continue:"))
+async def group_continue_application(callback: CallbackQuery, bot: Bot):
+    """Show privacy warning only after the user explicitly continues in a group."""
+    me = await bot.get_me()
+    private_url = f"https://t.me/{me.username}?start=private"
+    mention = (
+        f'<a href="tg://user?id={callback.from_user.id}">'
+        f'{html.escape(callback.from_user.first_name or "User")}</a>'
+    )
+    text = (
+        f"{mention}\n\n"
+        "🔐 <b>Private Documents Notice</b>\n\n"
+        "Application continue करने और Aadhaar, PAN, Bank Details या Payment Receipt "
+        "submit करने के लिए Bot की Private Chat खोलें।\n\n"
+        "⚠️ Group में कोई personal document या payment receipt share न करें।"
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔒 Open Bot Privately", url=private_url)],
+        [InlineKeyboardButton(text="🔙 Back to Wallets", callback_data="g:apply")],
+    ])
+    await callback.message.answer(
+        text,
+        reply_markup=kb,
+        parse_mode=ParseMode.HTML,
+        disable_web_page_preview=True,
+    )
     await callback.answer()
 
 
