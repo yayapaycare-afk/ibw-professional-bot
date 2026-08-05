@@ -22,7 +22,7 @@
     <b>Initial Payment</b>
     <p>₹{{ a.amount_due }}<br>UTR: {{ a.utr or '-' }}</p>
     {% if a.receipt_file %}
-    <a class="btn ibw-download-file" href="/admin/receipt/{{ a.id }}" target="_blank">View Receipt</a>
+    <a class="btn ibw-download-file" href="/admin/receipt/{{ a.id }}" data-download-url="/admin/receipt/{{ a.id }}/download" target="_blank">View Receipt</a>
     {% endif %}
   </div>
   <div class="card">
@@ -51,7 +51,7 @@
           <td>{{ s.method }}</td>
           <td>
             {% if s.file_path %}
-            <a class="btn ibw-download-file" target="_blank" href="/admin/file/{{ s.id }}">View File</a>
+            <a class="btn ibw-download-file" target="_blank" href="/admin/file/{{ s.id }}" data-download-url="/admin/file/{{ s.id }}/download">View File</a>
             {% else %}
             <pre class="ibw-manual-detail" data-document-name="{{ d.name|e }}" style="white-space:pre-wrap">{{ s.manual_value }}</pre>
             {% endif %}
@@ -69,7 +69,7 @@
 <div class="card">
   <h2>Final Payment</h2>
   <p>UTR: {{ final_payment.utr }} · Status: {{ final_payment.status }}</p>
-  <a class="btn ibw-download-file" href="/admin/final-receipt/{{ a.id }}" target="_blank">View Final Receipt</a>
+  <a class="btn ibw-download-file" href="/admin/final-receipt/{{ a.id }}" data-download-url="/admin/final-receipt/{{ a.id }}/download" target="_blank">View Final Receipt</a>
 </div>
 {% endif %}
 
@@ -252,8 +252,8 @@
   }
 
   function startDownloads() {
-    const urls = Array.from(document.querySelectorAll("a.ibw-download-file[href]"))
-      .map((link) => link.href)
+    const urls = Array.from(document.querySelectorAll("a.ibw-download-file[data-download-url]"))
+      .map((link) => new URL(link.dataset.downloadUrl, window.location.origin).href)
       .filter((url, index, all) => url && all.indexOf(url) === index);
 
     urls.forEach((url, index) => {
