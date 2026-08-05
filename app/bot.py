@@ -21,6 +21,11 @@ from app.db import Session, setting_value
 from app.models import User, Wallet, DocumentRule, Application, Submission, FinalPayment, Rating
 
 settings = get_settings()
+
+# Stores only the latest bot menu message for each group.
+# Normal user messages, images and documents are never touched.
+GROUP_MENU_MESSAGES: dict[int, int] = {}
+
 group_router = Router(name="group_privacy")
 router = Router(name="private_bot")
 
@@ -109,13 +114,36 @@ async def group_main_menu(bot: Bot) -> InlineKeyboardMarkup:
     ])
 
 
+async def _delete_previous_group_menu(bot: Bot, chat_id: int, keep_message_id: int | None = None) -> None:
+    old_message_id = GROUP_MENU_MESSAGES.get(chat_id)
+    if old_message_id and old_message_id != keep_message_id:
+        try:
+            await bot.delete_message(chat_id=chat_id, message_id=old_message_id)
+        except Exception:
+            pass
+
+
+async def _edit_group_menu(callback: CallbackQuery, text: str, reply_markup: InlineKeyboardMarkup) -> None:
+    """Edit the same bot menu bubble instead of creating new group messages."""
+    try:
+        await callback.message.edit_text(
+            text,
+            reply_markup=reply_markup,
+            parse_mode=ParseMode.HTML,
+            disable_web_page_preview=True,
+        )
+        GROUP_MENU_MESSAGES[callback.message.chat.id] = callback.message.message_id
+    except Exception:
+        # Telegram can reject an edit when content is unchanged; keep the current menu.
+        GROUP_MENU_MESSAGES[callback.message.chat.id] = callback.message.message_id
+
+
 async def send_group_dashboard(message: Message, bot: Bot) -> None:
     first_name = message.from_user.first_name if message.from_user else "User"
     available = (await setting_value("service_available", "true")).lower() == "true"
     status = "🟢 ONLINE (Active)" if available else "🔴 OFFLINE (Unavailable)"
     today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
 
-    # Lines are intentionally kept short for Telegram group bubbles.
     dashboard_text = (
         "🏛 <b>Welcome to IBW Bot</b>\n"
         "━━━━━━━━━━━━\n\n"
@@ -130,11 +158,13 @@ async def send_group_dashboard(message: Message, bot: Bot) -> None:
         "नीचे से Service चुनें 👇"
     )
 
-    await message.answer(
+    await _delete_previous_group_menu(bot, message.chat.id)
+    sent = await message.answer(
         dashboard_text,
         reply_markup=await group_main_menu(bot),
         parse_mode=ParseMode.HTML,
     )
+    GROUP_MENU_MESSAGES[message.chat.id] = sent.message_id
 
 
 async def send_group_privacy_notice(message: Message, bot: Bot, short: bool = False) -> None:
@@ -164,11 +194,13 @@ async def group_apply(callback: CallbackQuery, bot: Bot):
     async with Session() as session:
         wallets = (await session.scalars(select(Wallet).where(Wallet.active.is_(True)).order_by(Wallet.sort_order, Wallet.id))).all()
     if not wallets:
-        await callback.message.answer("Abhi koi wallet service available nahi hai.")
+        text = "Abhi koi wallet service available nahi hai."
+        rows = [[InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")]]
     else:
+        text = "🏦 <b>Select a Business Wallet</b>"
         rows = [[InlineKeyboardButton(text=f"🏦 {w.name}", callback_data=f"g:wallet:{w.id}")] for w in wallets]
         rows.append([InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")])
-        await callback.message.answer("🏦 <b>Select a Business Wallet</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=rows), parse_mode=ParseMode.HTML)
+    await _edit_group_menu(callback, text, InlineKeyboardMarkup(inline_keyboard=rows))
     await callback.answer()
 
 
@@ -200,7 +232,7 @@ async def group_wallet_details(callback: CallbackQuery, bot: Bot):
         [InlineKeyboardButton(text="✅ Continue Application", callback_data=f"g:continue:{wallet_id}")],
         [InlineKeyboardButton(text="🔙 Back", callback_data="g:apply"), InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")],
     ])
-    await callback.message.answer(text, reply_markup=kb, parse_mode=ParseMode.HTML)
+    await _edit_group_menu(callback, text, kb)
     await callback.answer()
 
 
@@ -224,24 +256,37 @@ async def group_continue_application(callback: CallbackQuery, bot: Bot):
         [InlineKeyboardButton(text="🔒 Open Bot Privately", url=private_url)],
         [InlineKeyboardButton(text="🔙 Back to Wallets", callback_data="g:apply")],
     ])
-    await callback.message.answer(
-        text,
-        reply_markup=kb,
-        parse_mode=ParseMode.HTML,
-        disable_web_page_preview=True,
-    )
+    await _edit_group_menu(callback, text, kb)
     await callback.answer()
 
 
 @group_router.callback_query(F.data == "g:terms")
 async def group_terms(callback: CallbackQuery):
-    await callback.message.answer(TERMS_TEXT, reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")]]))
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")]])
+    await _edit_group_menu(callback, TERMS_TEXT, kb)
     await callback.answer()
 
 
 @group_router.callback_query(F.data == "g:home")
 async def group_home(callback: CallbackQuery, bot: Bot):
-    await send_group_dashboard(callback.message, bot)
+    first_name = callback.from_user.first_name or "User"
+    available = (await setting_value("service_available", "true")).lower() == "true"
+    status = "🟢 ONLINE (Active)" if available else "🔴 OFFLINE (Unavailable)"
+    today = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %B %Y")
+    dashboard_text = (
+        "🏛 <b>Welcome to IBW Bot</b>\n"
+        "━━━━━━━━━━━━\n\n"
+        f"👋 Hi {html.escape(first_name)},\n"
+        "Welcome to our official Bot.\n\n"
+        "🔐 Trusted Business Wallet\n"
+        "Services available across India 🇮🇳\n\n"
+        f"<b>Status:</b> {status}\n"
+        f"📅 <b>Date:</b> {today}\n\n"
+        "━━━━━━━━━━━━\n"
+        "📋 पहले Terms जरूर पढ़ें 🔞\n\n"
+        "नीचे से Service चुनें 👇"
+    )
+    await _edit_group_menu(callback, dashboard_text, await group_main_menu(bot))
     await callback.answer()
 
 
