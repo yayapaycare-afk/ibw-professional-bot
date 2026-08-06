@@ -162,7 +162,7 @@ def register_website_routes(app: FastAPI) -> None:
         return {"business_name": settings.business_name, "service_available": available, "working_hours": hours,
                 "wallets": output, "whatsapp_number": settings.whatsapp_number,
                 "official_channel": settings.official_channel,
-                "telegram_support": "https://t.me/RaghavRaghu1", "support_email": "indiabusinesswallets@gmail.com"}
+                "telegram_support": "https://t.me/Indiabusinesswallet", "support_email": "indiabusinesswallets@gmail.com"}
 
     @app.get("/website/wallet/{wallet_id}/qr")
     async def wallet_qr(wallet_id: int):
