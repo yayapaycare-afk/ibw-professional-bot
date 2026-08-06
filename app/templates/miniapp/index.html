@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f2d56">
   <title>{{ business_name }} Portal</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="/static/miniapp/miniapp.css?v=5">
+  <link rel="stylesheet" href="/static/miniapp/miniapp.css?v=6">
 </head>
 <body>
   <div class="app-shell">
@@ -33,9 +33,9 @@
       <section id="homeView" class="view-section">
         <div class="welcome-card">
           <div>
-            <p class="eyebrow">Welcome</p>
-            <h2>Hi, <span id="welcomeName">User</span> 👋</h2>
-            <p>Services, documents, payment submission and application tracking—everything is available inside this portal.</p>
+            <p class="eyebrow">Application Portal</p>
+            <h2>Start Your Application 👋</h2>
+            <p>Apply Now par tap karke apna Business Wallet select karein.<br>Required details, documents aur payment submit karne ke baad aapko Application ID milegi, jisse aap live status track kar sakte hain.</p>
           </div>
           <button type="button" class="primary-btn" data-view="services">Start Application</button>
         </div>
@@ -64,7 +64,7 @@
           <p class="eyebrow">Submitted Successfully</p>
           <h2>Your application is received</h2>
           <p id="successWallet"></p>
-          <div class="application-code" id="successCode"></div>
+          <button type="button" class="application-code copyable" id="successCode" data-copy-value="" data-copy-message="Application ID copied ✅"></button>
           <p>Application ID सुरक्षित रखें। आगे के updates Telegram Bot पर मिलेंगे।</p>
           <button type="button" class="primary-btn" data-view="applications">View My Applications</button>
         </div>
@@ -101,6 +101,8 @@
           <p>Documents केवल इस Telegram Mini App या Bot की private chat में submit करें। OTP, UPI PIN, password और card PIN कभी share न करें।</p>
           <div class="support-actions">
             {% if whatsapp_number %}<a class="primary-btn link-btn" href="https://wa.me/{{ whatsapp_number }}" target="_blank" rel="noopener">WhatsApp Support</a>{% endif %}
+            <a class="secondary-btn link-btn" href="https://t.me/RaghavRaghu1" target="_blank" rel="noopener">Telegram Support</a>
+            <a class="secondary-btn link-btn" href="mailto:indiabusinesswallets@gmail.com?subject=India%20Business%20Wallets%20Support%20Request&amp;body=Hello%20India%20Business%20Wallets%20Support%2C%0A%0APlease%20help%20me%20with%20my%20application.%0A%0AApplication%20ID%3A%20%0AIssue%3A%20">Email Support</a>
             {% if official_channel %}<a class="secondary-btn link-btn" href="{{ official_channel }}" target="_blank" rel="noopener">Official Channel</a>{% endif %}
           </div>
           <hr>
@@ -122,6 +124,7 @@
       <button type="button" data-view="support"><span>?</span>Support</button>
     </footer>
   </div>
-  <script src="/static/miniapp/miniapp.js?v=5"></script>
+  <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
+  <script src="/static/miniapp/miniapp.js?v=6"></script>
 </body>
 </html>
