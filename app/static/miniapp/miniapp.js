@@ -10,6 +10,28 @@
   const $ = (id) => document.getElementById(id);
   const escapeHtml = (value) => { const div = document.createElement("div"); div.textContent = String(value ?? ""); return div.innerHTML; };
   const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
+  const walletLogo = (name) => {
+    const key = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const logos = {
+      paytmbusiness: "paytm-business.png",
+      phonepaybusiness: "phonepe-business.png",
+      phonepebusiness: "phonepe-business.png",
+      bajajpaybusiness: "bajajpay-business.png",
+      bharatpaybusiness: "bharatpe-business.png",
+      bharatpebusiness: "bharatpe-business.png",
+      mobikwikbusiness: "mobikwik-business.png",
+      pinelabsbusiness: "pinelabs-business.png",
+      googlepaybusiness: "googlepay-business.png",
+      gpaybusiness: "googlepay-business.png"
+    };
+    const filename = logos[key];
+    return filename ? `/static/miniapp/logos/${filename}` : "";
+  };
+  const logoMarkup = (wallet, className = "wallet-logo") => {
+    const src = walletLogo(wallet?.name);
+    if (!src) return `<span class="${className} wallet-logo-fallback">₹</span>`;
+    return `<img class="${className}" src="${src}" alt="${escapeHtml(wallet.name)} logo" loading="lazy" onerror="this.style.display='none'">`;
+  };
   const notice = $("telegramNotice");
   const views = [...document.querySelectorAll(".view-section")];
 
@@ -51,7 +73,13 @@
     if (!bootstrap?.wallets?.length) { $("walletList").innerHTML = '<div class="empty">No service is currently available.</div>'; return; }
     $("walletList").innerHTML = bootstrap.wallets.map((wallet) => `
       <article class="wallet-card">
-        <div class="wallet-top"><div><h3>${escapeHtml(wallet.name)}</h3><p>${escapeHtml(wallet.processing_time || "Subject to verification")}</p></div><div class="price">${money(wallet.total_fee)}</div></div>
+        <div class="wallet-top">
+          <div class="wallet-title-wrap">
+            ${logoMarkup(wallet)}
+            <div><h3>${escapeHtml(wallet.name)}</h3><p>${escapeHtml(wallet.processing_time || "Subject to verification")}</p></div>
+          </div>
+          <div class="price">${money(wallet.total_fee)}</div>
+        </div>
         ${wallet.description ? `<p>${escapeHtml(wallet.description)}</p>` : ""}
         <div class="fee-grid"><div class="fee-box"><b>First Payment</b><span>${money(wallet.initial_amount)}</span><small>${wallet.initial_percent}%</small></div><div class="fee-box"><b>Remaining</b><span>${money(wallet.remaining_amount)}</span><small>After wallet ready</small></div></div>
         <div class="doc-chips">${wallet.documents.map((doc) => `<span class="doc-chip">${escapeHtml(doc.name)}</span>`).join("")}</div>
@@ -93,7 +121,12 @@
     selectedWallet = bootstrap.wallets.find((item) => item.id === walletId);
     if (!selectedWallet) return;
     $("applyContent").innerHTML = `
-      <div class="apply-summary"><p class="eyebrow">New Application</p><h2>${escapeHtml(selectedWallet.name)}</h2><p>Total Fee ${money(selectedWallet.total_fee)} • First Payment ${money(selectedWallet.initial_amount)}</p></div>
+      <div class="apply-summary">
+        <div class="apply-summary-brand">
+          ${logoMarkup(selectedWallet, "apply-wallet-logo")}
+          <div><p class="eyebrow">New Application</p><h2>${escapeHtml(selectedWallet.name)}</h2><p>Total Fee ${money(selectedWallet.total_fee)} • First Payment ${money(selectedWallet.initial_amount)}</p></div>
+        </div>
+      </div>
       <div class="stepper"><span class="active"></span><span class="active"></span><span class="active"></span><span></span></div>
       <form id="applicationForm">
         ${selectedWallet.documents.map(documentBlock).join("")}
