@@ -84,6 +84,8 @@ async def notify_status(application_id: int, status: str):
         app = await session.get(Application, application_id)
         if not app:
             return
+        if getattr(app, "source", "TELEGRAM") == "WEBSITE":
+            return
 
         wallet = await session.get(Wallet, app.wallet_id)
         final_qr = await get_setting(session, "final_qr_file", "")
@@ -200,6 +202,8 @@ async def send_custom_message_to_user(application_id: int, message_text: str) ->
         application = await session.get(Application, application_id)
         if not application:
             raise RuntimeError("Application not found")
+        if getattr(application, "source", "TELEGRAM") == "WEBSITE":
+            raise RuntimeError("Website applications do not have Telegram chat access")
         telegram_id = application.user_id
 
     bot = Bot(settings.bot_token)
