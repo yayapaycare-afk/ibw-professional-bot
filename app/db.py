@@ -28,9 +28,17 @@ async def init_db():
 
         # Lightweight migration for existing V2 databases.
         def migrate(sync_conn):
-            columns = {c["name"] for c in inspect(sync_conn).get_columns("wallets")}
-            if "banking_name" not in columns:
+            wallet_columns = {c["name"] for c in inspect(sync_conn).get_columns("wallets")}
+            if "banking_name" not in wallet_columns:
                 sync_conn.execute(text("ALTER TABLE wallets ADD COLUMN banking_name VARCHAR(150) DEFAULT ''"))
+
+            application_columns = {c["name"] for c in inspect(sync_conn).get_columns("applications")}
+            if "source" not in application_columns:
+                sync_conn.execute(text("ALTER TABLE applications ADD COLUMN source VARCHAR(20) DEFAULT 'TELEGRAM'"))
+            if "web_visitor_hash" not in application_columns:
+                sync_conn.execute(text("ALTER TABLE applications ADD COLUMN web_visitor_hash VARCHAR(64)"))
+            if "customer_mobile" not in application_columns:
+                sync_conn.execute(text("ALTER TABLE applications ADD COLUMN customer_mobile VARCHAR(20)"))
         await conn.run_sync(migrate)
 
     async with Session() as session:
