@@ -17,7 +17,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
 from app.db import Session
-from app.models import Application, DocumentRule, FinalPayment, Submission, SystemSetting, User, Wallet
+from app.models import Application, DocumentRule, FinalPayment, Rating, Submission, SystemSetting, User, Wallet
 
 settings = get_settings()
 templates = Jinja2Templates(directory="app/templates")
@@ -279,11 +279,12 @@ def register_website_routes(app: FastAPI) -> None:
             output=[]
             for application, wallet in rows:
                 final_payment=(await session.scalars(select(FinalPayment).where(FinalPayment.application_id==application.id))).first()
+                rating=(await session.scalars(select(Rating).where(Rating.application_id==application.id))).first()
                 output.append({"id":application.id,"application_id":application.application_id,"wallet":wallet.name,
                     "status":application.status,"status_label":_status_label(application.status),
                     "created_at":application.created_at.isoformat(),"total_fee":wallet.total_fee,
                     "paid_initial":application.amount_due,"remaining_amount":max(wallet.total_fee-application.amount_due,0),
-                    "final_payment_submitted":bool(final_payment)})
+                    "final_payment_submitted":bool(final_payment),"rating":rating.stars if rating else None})
         return {"applications":output}
 
     @app.post("/website/api/track")
@@ -304,6 +305,45 @@ def register_website_routes(app: FastAPI) -> None:
         path=_resolve_file(path)
         if not path: raise HTTPException(404,"Final payment QR is not configured")
         response=FileResponse(path,media_type=mimetypes.guess_type(path)[0] or "image/jpeg"); response.headers["Cache-Control"]="private, no-store"; return response
+
+
+    @app.post("/website/api/rating")
+    async def submit_rating(request: Request):
+        payload = await request.json()
+        visitor_hash = _visitor_hash(request.state.web_visitor_token)
+        try:
+            application_id = int(payload.get("application_id", 0))
+            stars = int(payload.get("stars", 0))
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(400, "Invalid rating") from exc
+        if stars not in range(1, 6):
+            raise HTTPException(400, "Rating must be between 1 and 5")
+        async with Session() as session:
+            application = await session.get(Application, application_id)
+            if (
+                not application
+                or application.source != "WEBSITE"
+                or application.web_visitor_hash != visitor_hash
+            ):
+                raise HTTPException(404, "Application not found")
+            if application.status != "COMPLETED":
+                raise HTTPException(400, "Rating is available after completion")
+            existing = (
+                await session.scalars(
+                    select(Rating).where(Rating.application_id == application.id)
+                )
+            ).first()
+            if existing:
+                return {"success": True, "stars": existing.stars, "already_submitted": True}
+            session.add(
+                Rating(
+                    application_id=application.id,
+                    user_id=application.user_id,
+                    stars=stars,
+                )
+            )
+            await session.commit()
+        return {"success": True, "stars": stars, "already_submitted": False}
 
     @app.post("/website/api/final-payment-info")
     async def final_info(request: Request):
