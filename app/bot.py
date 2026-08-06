@@ -22,6 +22,22 @@ from app.models import User, Wallet, DocumentRule, Application, Submission, Fina
 
 settings = get_settings()
 
+GROUP_BANNER_PATH = os.path.join(
+    os.path.dirname(__file__), "static", "group", "wallets-banner.png"
+)
+
+GROUP_TERMS_SUMMARY = """📜 <b>India Business Wallets — Important Terms</b>
+
+✅ केवल official Bot और authorized support का उपयोग करें।
+🔐 Aadhaar, PAN, Bank Details और receipts केवल Private Chat में submit करें।
+🚫 OTP, UPI PIN, Password या Card PIN कभी share न करें।
+💳 Payment दो भागों में होता है—पहला application शुरू करते समय, बाकी wallet ready होने के बाद।
+⚠️ किसी agent को निर्धारित fee से अधिक payment न करें।
+⏳ Document verification के कारण processing time बदल सकता है।
+💰 Payment से पहले UPI App में Banking Name verify करें।
+
+पूरी Terms पढ़ने और application submit करने के लिए Bot को privately खोलें।"""
+
 # Stores only the latest bot menu message for each group.
 # Normal user messages, images and documents are never touched.
 GROUP_MENU_MESSAGES: dict[int, int] = {}
@@ -124,17 +140,28 @@ async def _delete_previous_group_menu(bot: Bot, chat_id: int, keep_message_id: i
 
 
 async def _edit_group_menu(callback: CallbackQuery, text: str, reply_markup: InlineKeyboardMarkup) -> None:
-    """Edit the same bot menu bubble instead of creating new group messages."""
+    """Keep the complete group UI inside one bot message.
+
+    The group dashboard is a photo message so wallet branding remains visible.
+    All menu screens are rendered by editing that photo caption and keyboard.
+    """
     try:
-        await callback.message.edit_text(
-            text,
-            reply_markup=reply_markup,
-            parse_mode=ParseMode.HTML,
-            disable_web_page_preview=True,
-        )
+        if callback.message.photo:
+            await callback.message.edit_caption(
+                caption=text,
+                reply_markup=reply_markup,
+                parse_mode=ParseMode.HTML,
+            )
+        else:
+            await callback.message.edit_text(
+                text,
+                reply_markup=reply_markup,
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True,
+            )
         GROUP_MENU_MESSAGES[callback.message.chat.id] = callback.message.message_id
     except Exception:
-        # Telegram can reject an edit when content is unchanged; keep the current menu.
+        # Telegram may reject an unchanged edit. The current menu should remain usable.
         GROUP_MENU_MESSAGES[callback.message.chat.id] = callback.message.message_id
 
 
@@ -159,11 +186,20 @@ async def send_group_dashboard(message: Message, bot: Bot) -> None:
     )
 
     await _delete_previous_group_menu(bot, message.chat.id)
-    sent = await message.answer(
-        dashboard_text,
-        reply_markup=await group_main_menu(bot),
-        parse_mode=ParseMode.HTML,
-    )
+    keyboard = await group_main_menu(bot)
+    if os.path.isfile(GROUP_BANNER_PATH):
+        sent = await message.answer_photo(
+            FSInputFile(GROUP_BANNER_PATH),
+            caption=dashboard_text,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML,
+        )
+    else:
+        sent = await message.answer(
+            dashboard_text,
+            reply_markup=keyboard,
+            parse_mode=ParseMode.HTML,
+        )
     GROUP_MENU_MESSAGES[message.chat.id] = sent.message_id
 
 
@@ -197,7 +233,7 @@ async def group_apply(callback: CallbackQuery, bot: Bot):
         text = "Abhi koi wallet service available nahi hai."
         rows = [[InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")]]
     else:
-        text = "🏦 <b>Select a Business Wallet</b>"
+        text = "🏦 <b>Select a Business Wallet</b>\n\nनीचे अपनी पसंद की service चुनें। Logo banner ऊपर available wallet brands दिखाता है।"
         rows = [[InlineKeyboardButton(text=f"🏦 {w.name}", callback_data=f"g:wallet:{w.id}")] for w in wallets]
         rows.append([InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")])
     await _edit_group_menu(callback, text, InlineKeyboardMarkup(inline_keyboard=rows))
@@ -263,7 +299,7 @@ async def group_continue_application(callback: CallbackQuery, bot: Bot):
 @group_router.callback_query(F.data == "g:terms")
 async def group_terms(callback: CallbackQuery):
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🏠 Main Menu", callback_data="g:home")]])
-    await _edit_group_menu(callback, TERMS_TEXT, kb)
+    await _edit_group_menu(callback, GROUP_TERMS_SUMMARY, kb)
     await callback.answer()
 
 
