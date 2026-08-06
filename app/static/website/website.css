@@ -9,3 +9,41 @@
 .drawer-backdrop{position:fixed;inset:0;background:rgba(6,18,37,.52);backdrop-filter:blur(3px);z-index:79}.info-drawer{position:fixed;top:0;right:0;width:min(410px,92vw);height:100dvh;background:#fff;z-index:80;transform:translateX(105%);transition:transform .25s ease;box-shadow:-24px 0 60px rgba(6,25,52,.24);padding:18px;overflow-y:auto}.info-drawer.open{transform:translateX(0)}body.drawer-open{overflow:hidden}.drawer-head{display:flex;align-items:flex-start;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--line)}.drawer-brand{display:flex;align-items:center;gap:12px;min-width:0}.drawer-brand img{width:54px;height:54px;border-radius:15px;border:1px solid var(--line);object-fit:cover}.drawer-brand div{display:flex;flex-direction:column;min-width:0}.drawer-brand b{font-size:17px;color:var(--navy)}.drawer-brand small{font-size:12px;line-height:1.35;color:var(--muted);margin-top:3px}.drawer-close{margin-left:auto;width:38px;height:38px;border:0;border-radius:11px;background:#f1f5fa;color:var(--navy);font-size:27px;line-height:1;cursor:pointer}.drawer-highlights{display:grid;grid-template-columns:1fr;gap:7px;padding:14px 0}.drawer-highlights span{padding:10px 12px;border-radius:11px;background:#f5f8fc;color:#36577e;font-size:13px;font-weight:700}.drawer-links{display:grid;gap:6px}.drawer-links button{width:100%;border:0;background:transparent;color:var(--text);text-align:left;padding:12px 13px;border-radius:11px;font-size:14px;font-weight:750;cursor:pointer}.drawer-links button:hover{background:var(--soft);color:var(--blue-2)}.community-card{display:grid;grid-template-columns:auto 1fr;gap:10px;margin:16px 0;padding:15px;border-radius:16px;background:linear-gradient(135deg,#0b2d5c,#1769e0);color:#fff;text-decoration:none;box-shadow:0 12px 28px rgba(23,105,224,.22)}.community-icon{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.17);display:grid;place-items:center;font-size:18px}.community-card div{display:flex;flex-direction:column}.community-card b{font-size:15px}.community-card small{font-size:12px;line-height:1.42;color:#dceaff;margin-top:3px}.community-card strong{grid-column:2;font-size:12px}.drawer-channel{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--text)}.drawer-channel img{width:42px;height:42px;border-radius:12px;border:1px solid var(--line)}.drawer-channel div{display:flex;flex-direction:column}.drawer-channel small{color:var(--muted);font-size:12px;margin-top:2px}.drawer-footer-info{display:grid;gap:7px;margin-top:14px;padding:13px;border-radius:13px;background:#f6f8fb;color:#526275;font-size:12px}.online-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a36f;margin-right:6px;box-shadow:0 0 0 4px rgba(22,163,111,.12)}
 .support-item{align-items:center;min-height:78px}.support-logo{width:48px;height:48px;flex:0 0 48px;border-radius:14px;display:grid;place-items:center;background:#fff;border:1px solid rgba(20,45,82,.10);box-shadow:0 5px 14px rgba(20,45,82,.08)}.support-logo svg{width:27px;height:27px;display:block}.whatsapp-logo svg{fill:#25D366}.telegram-logo svg{fill:#229ED9}.email-logo svg{fill:#1769e0}.ibw-channel-logo img{width:100%;height:100%;border-radius:13px;object-fit:cover}.support-item div{min-width:0}.support-item b{font-size:15px}.support-item small{line-height:1.35}.whatsapp-success{display:flex!important;align-items:center;justify-content:center;gap:10px;text-decoration:none}.whatsapp-success .support-logo{width:34px;height:34px;flex-basis:34px;border:0;box-shadow:none}.whatsapp-success .support-logo svg{width:23px;height:23px}.success-actions{display:grid!important;grid-template-columns:1fr!important;gap:10px!important}.success-actions>*{width:100%}
 @media(max-width:760px){.site-header nav{display:none}.brand b{font-size:15px}.brand small{font-size:10px}.site-header{padding:12px 14px}.brand img{width:46px;height:46px}.info-drawer{padding:16px}.support-logo{width:45px;height:45px;flex-basis:45px}}
+
+/* Phase 2.2 compact forms and professional application cards */
+.customer-details-card{padding-bottom:18px}
+.trust-pill{letter-spacing:.01em}
+.application-card{padding:16px 17px;overflow:hidden}
+.application-card-head{align-items:center}
+.application-brand{min-width:0;align-items:center}
+.application-brand img{width:46px;height:46px;flex:0 0 46px;border-radius:12px}
+.application-identity{min-width:0;display:grid;gap:5px}
+.application-wallet-name{margin:0!important;color:var(--text)!important;font-size:15px;font-weight:850;line-height:1.2}
+.application-id{display:flex;align-items:center;gap:8px;max-width:100%;appearance:none;border:0;background:transparent;padding:0;color:#0d58a7;cursor:pointer;text-align:left}
+.application-id span{font-size:14px;font-weight:900;letter-spacing:.01em;white-space:nowrap}
+.application-id small{font-size:9px;color:var(--muted);white-space:nowrap}
+.application-card .badge{max-width:46%;min-height:28px;padding:6px 9px;font-size:10px;line-height:1.2;text-align:center;white-space:normal}
+.application-card .status-timeline{margin:14px 0 12px}
+.application-card .status-step i{width:20px;height:20px;flex-basis:20px;font-size:10px}
+.application-card .payment-summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:0}
+.application-card .payment-summary div{padding:10px;border:1px solid #edf1f6;border-radius:11px;min-width:0}
+.application-card .payment-summary small,.application-card .payment-summary strong{display:block}
+.application-card .payment-summary small{font-size:9px;color:var(--muted);font-weight:750;white-space:nowrap}
+.application-card .payment-summary strong{margin-top:4px;font-size:14px;line-height:1.2;word-break:normal}
+.application-card .final-btn{width:100%;margin-top:12px}
+.application-card .rating-box{margin-top:12px;padding:12px}
+
+@media(max-width:640px){
+  .trust-pill{width:100%;justify-content:flex-start;font-size:11px;line-height:1.35;padding:8px 11px}
+  .application-card{padding:14px}
+  .application-card-head{align-items:flex-start;gap:8px}
+  .application-brand{gap:10px;flex:1;min-width:0}
+  .application-brand img{width:42px;height:42px;flex-basis:42px}
+  .application-id span{font-size:12px}
+  .application-id small{display:none}
+  .application-card .badge{max-width:42%;font-size:9px;padding:6px 7px}
+  .application-card .payment-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .application-card .payment-summary div{padding:9px 7px}
+  .application-card .payment-summary small{font-size:8px}
+  .application-card .payment-summary strong{font-size:12px}
+}
