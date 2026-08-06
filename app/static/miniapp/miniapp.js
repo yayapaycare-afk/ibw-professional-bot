@@ -274,4 +274,5 @@
     copyText(target.dataset.copyValue, target.dataset.copyMessage || "Copied ✅");
   });
 
-  // Open external support links reliably i
+  if (initUser && $("welcomeName")) {
+    $
