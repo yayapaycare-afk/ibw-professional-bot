@@ -274,4 +274,4 @@
     copyText(target.dataset.copyValue, target.dataset.copyMessage || "Copied ✅");
   });
 
-  // Initialize the Mini App after all even
+  // Open external support links reliably i
