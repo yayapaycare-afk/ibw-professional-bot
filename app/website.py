@@ -232,7 +232,17 @@ def register_website_routes(app: FastAPI) -> None:
                     user.full_name = full_name
                     user.username = f"website:{mobile}"
                 else:
-                    session.add(User(telegram_id=user_id, full_name=full_name, username=f"website:{mobile}"))
+                    user = User(
+                        telegram_id=user_id,
+                        full_name=full_name,
+                        username=f"website:{mobile}",
+                    )
+                    session.add(user)
+
+                # Flush the website user first so the applications.user_id
+                # foreign key always points to an existing users row.
+                await session.flush()
+
                 amount_due = round(wallet.total_fee * wallet.initial_percent / 100)
                 application = Application(
                     user_id=user_id, wallet_id=wallet.id, status="PAYMENT_UNDER_VERIFICATION",
