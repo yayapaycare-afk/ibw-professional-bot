@@ -91,7 +91,7 @@
   </form>
 </div>
 
-<div class="card">
+{% if a.source != "WEBSITE" %}<div class="card">
   <h2>✉️ Send Custom Message</h2>
   <p class="muted">Is message se application status change nahi hoga.</p>
   {% if request.query_params.get('message_sent') == '1' %}
@@ -108,7 +108,7 @@
     <textarea name="message_text" rows="6" maxlength="3500" placeholder="Apna message yahan type karein..." required></textarea>
     <button type="submit">Send Message</button>
   </form>
-</div>
+</div>{% endif %}
 
 <div class="card">
   <h2>Status History</h2>
