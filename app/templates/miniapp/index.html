@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0f2d56">
   <title>{{ business_name }} Portal</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="/static/miniapp/miniapp.css?v=3">
+  <link rel="stylesheet" href="/static/miniapp/miniapp.css?v=4">
 </head>
 <body>
   <div class="app-shell">
@@ -14,7 +14,7 @@
       <div class="brand-mark">IBW</div>
       <div class="hero-copy">
         <p class="eyebrow">Official Service Portal</p>
-        <h1>{{ business_name }}</h1>
+        <h1 title="{{ business_name }}">{{ business_name }}</h1>
         <p>Trusted Business Wallet Services across India 🇮🇳</p>
       </div>
       <span id="serviceBadge" class="status-badge">Checking…</span>
@@ -23,7 +23,7 @@
     <div id="telegramNotice" class="notice hidden" role="status"></div>
 
     <nav class="quick-grid" aria-label="Portal sections">
-      <button type="button" class="quick-card primary" data-view="services"><span>💼</span><b>Apply Now</b><small>Choose a wallet</small></button>
+      <button type="button" class="quick-card" data-view="services"><span>💼</span><b>Apply Now</b><small>Choose a wallet</small></button>
       <button type="button" class="quick-card" data-view="applications"><span>📂</span><b>My Applications</b><small>View live status</small></button>
       <button type="button" class="quick-card" data-view="track"><span>🔍</span><b>Track Status</b><small>Use Application ID</small></button>
       <button type="button" class="quick-card" data-view="support"><span>💬</span><b>Support</b><small>Get assistance</small></button>
@@ -122,6 +122,6 @@
       <button type="button" data-view="support"><span>?</span>Support</button>
     </footer>
   </div>
-  <script src="/static/miniapp/miniapp.js?v=3"></script>
+  <script src="/static/miniapp/miniapp.js?v=4"></script>
 </body>
 </html>
