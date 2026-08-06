@@ -683,4 +683,7 @@ def build_admin_app():
     from app.miniapp import register_miniapp_routes
     register_miniapp_routes(app)
 
+    from app.website import register_website_routes
+    register_website_routes(app)
+
     return app
