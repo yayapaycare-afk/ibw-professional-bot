@@ -1,12 +1,144 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#102c54"><title>{{ business_name }} — Business Wallet Services</title><link rel="stylesheet" href="/static/website/website.css?v=1"></head>
-<body><div class="site-shell"><header class="site-header"><a class="brand" href="/website"><img src="/static/miniapp/logos/ibw-logo.png" alt="India Business Wallets"><span><b>{{ business_name }}</b><small>Official Business Wallet Portal</small></span></a><nav><button data-view="home">Home</button><button data-view="services">Wallets</button><button data-view="applications">Applications</button><button data-view="track">Track</button><button data-view="support">Support</button></nav><span id="serviceBadge" class="status">Checking…</span></header>
-<main><section id="homeView" class="view"><div class="hero"><div><p class="eyebrow">Trusted services across India</p><h1>Start Your Business Wallet Application</h1><p>Choose your wallet, submit required details and payment, then track your application using the generated Application ID.</p><div class="hero-actions"><button class="primary" data-view="services">Apply Now</button><button class="secondary" data-view="track">Track Status</button></div></div><div class="trust-card"><b id="workingHours">—</b><span>Working Hours</span><hr><b>Secure submission</b><span>Documents are stored privately</span></div></div><div class="feature-grid"><article><b>1. Choose Wallet</b><p>Select the business wallet service you need.</p></article><article><b>2. Submit Details</b><p>Enter details or upload required documents.</p></article><article><b>3. Pay & Track</b><p>Submit UTR and receipt, then track live status.</p></article></div></section>
-<section id="servicesView" class="view hidden"><div class="section-head"><div><p class="eyebrow">Available services</p><h2>Choose Business Wallet</h2></div><button id="refreshWallets" class="text-btn">Refresh</button></div><div id="walletList" class="wallet-grid"><div class="loading">Loading services…</div></div></section>
-<section id="applyView" class="view hidden"><button class="back" data-view="services">← Back to Wallets</button><div id="applyContent"></div></section>
-<section id="successView" class="view hidden"><div class="center-card"><div class="success-icon">✓</div><p class="eyebrow">Submitted successfully</p><h2>Application Received</h2><p id="successWallet"></p><button id="successCode" class="code copyable" data-copy-value=""></button><p>Save this Application ID. You can track status from this website.</p><button class="primary" data-view="applications">View My Applications</button></div></section>
-<section id="applicationsView" class="view hidden"><div class="section-head"><div><p class="eyebrow">This browser</p><h2>My Applications</h2></div><button id="refreshApplications" class="text-btn">Refresh</button></div><div id="applicationsList"><div class="loading">Loading…</div></div></section>
-<section id="trackView" class="view hidden"><div class="panel narrow"><p class="eyebrow">Secure tracking</p><h2>Track Application</h2><label>Application ID<input id="applicationId" placeholder="IBW-2026-000001"></label><label>Mobile Number<input id="trackMobile" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number"></label><button id="trackButton" class="primary">Track Status</button><div id="trackResult" class="result hidden"></div></div></section>
-<section id="finalPaymentView" class="view hidden"><button class="back" data-view="applications">← Back to Applications</button><div id="finalPaymentContent"></div></section>
-<section id="supportView" class="view hidden"><div class="panel narrow"><p class="eyebrow">Help & safety</p><h2>Customer Support</h2><p>Never share OTP, UPI PIN, passwords or card PIN. Submit documents only through this official portal.</p><div class="support-list"><a id="whatsappLink" class="primary" target="_blank">WhatsApp Support</a><a href="https://t.me/RaghavRaghu1" class="secondary" target="_blank">Telegram Support</a><a href="mailto:indiabusinesswallets@gmail.com?subject=India%20Business%20Wallets%20Support%20Request" class="secondary">Email Support</a><a id="channelLink" class="secondary" target="_blank">Official Channel</a></div></div></section></main>
-<footer><button data-view="home">⌂<span>Home</span></button><button data-view="services">＋<span>Apply</span></button><button data-view="applications">▣<span>Applications</span></button><button data-view="track">⌕<span>Track</span></button><button data-view="support">?<span>Support</span></button></footer></div><div id="toast" class="toast"></div><script src="/static/website/website.js?v=2"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b2d5c">
+  <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
+  <title>{{ business_name }} — Official Service Portal</title>
+  <link rel="stylesheet" href="/static/website/website.css?v=3">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="/website" aria-label="India Business Wallets home">
+        <img src="/static/miniapp/logos/ibw-logo.png" alt="India Business Wallets logo">
+        <span><b>{{ business_name }}</b><small>Official Business Wallet Portal</small></span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <button type="button" data-view="home">Home</button>
+        <button type="button" data-view="services">Wallets</button>
+        <button type="button" data-view="applications">Applications</button>
+        <button type="button" data-view="track">Track</button>
+        <button type="button" data-view="support">Support</button>
+      </nav>
+      <span id="serviceBadge" class="status">Checking…</span>
+    </header>
+
+    <main>
+      <section id="homeView" class="view">
+        <div class="hero">
+          <div class="hero-copy">
+            <span class="trust-pill">✓ Trusted Business Wallet Services Across India</span>
+            <h1>Open Your Business Wallet Online</h1>
+            <p>Choose your wallet, submit documents securely, complete payment and track every update using your Application ID.</p>
+            <div class="hero-actions">
+              <button type="button" class="primary" data-view="services">Apply Now</button>
+              <button type="button" class="secondary" data-view="track">Track Application</button>
+            </div>
+            <div class="trust-stats">
+              <div><strong>5,000+</strong><span>Customers Assisted</span></div>
+              <div><strong>100%</strong><span>Online Process</span></div>
+              <div><strong id="workingHours">—</strong><span>Support Hours</span></div>
+            </div>
+          </div>
+          <div class="hero-brand-card">
+            <img src="/static/miniapp/logos/ibw-logo.png" alt="India Business Wallets official logo">
+            <h2>India Business Wallets</h2>
+            <p>Transparent fees • Secure documents • Live application tracking</p>
+            <div class="hero-security"><span>🔒 Secure Submission</span><span>✓ Verified Portal</span></div>
+          </div>
+        </div>
+
+        <div class="section-intro">
+          <p class="eyebrow">Simple & transparent process</p>
+          <h2>Apply in three easy steps</h2>
+        </div>
+        <div class="feature-grid">
+          <article><span>01</span><b>Choose Wallet</b><p>Select the business wallet service that fits your requirement.</p></article>
+          <article><span>02</span><b>Submit Details</b><p>Enter required information or securely upload your documents.</p></article>
+          <article><span>03</span><b>Pay & Track</b><p>Submit payment proof and track progress with your Application ID.</p></article>
+        </div>
+
+        <div class="security-banner">
+          <div><b>Your documents remain private</b><p>Never share OTP, UPI PIN, passwords or card PIN with anyone.</p></div>
+          <button type="button" class="text-btn" data-view="support">Read Safety Guidelines →</button>
+        </div>
+      </section>
+
+      <section id="servicesView" class="view hidden">
+        <div class="section-head">
+          <div><p class="eyebrow">Available services</p><h2>Choose Business Wallet</h2><p>Select a wallet to view fees, documents and processing details.</p></div>
+          <button type="button" id="refreshWallets" class="text-btn">Refresh</button>
+        </div>
+        <div id="walletList" class="wallet-grid"><div class="loading">Loading services…</div></div>
+      </section>
+
+      <section id="applyView" class="view hidden">
+        <button type="button" class="back" data-view="services">← Back to Wallets</button>
+        <div id="applyContent"></div>
+      </section>
+
+      <section id="successView" class="view hidden">
+        <div class="center-card success-page">
+          <div class="success-icon">✓</div>
+          <p class="eyebrow">Submitted successfully</p>
+          <h2>Application Received</h2>
+          <p id="successWallet"></p>
+          <button type="button" id="successCode" class="code copyable" data-copy-value=""></button>
+          <p>Save your Application ID. You can use it anytime to track your current status.</p>
+          <div class="success-actions"><button type="button" class="primary" data-view="applications">View My Applications</button><button type="button" class="secondary" data-view="track">Track Status</button></div>
+        </div>
+      </section>
+
+      <section id="applicationsView" class="view hidden">
+        <div class="section-head">
+          <div><p class="eyebrow">Saved in this browser</p><h2>My Applications</h2><p>View payment details, progress and completed services.</p></div>
+          <button type="button" id="refreshApplications" class="text-btn">Refresh</button>
+        </div>
+        <div id="applicationsList"><div class="loading">Loading applications…</div></div>
+      </section>
+
+      <section id="trackView" class="view hidden">
+        <div class="panel narrow track-panel">
+          <p class="eyebrow">Secure tracking</p>
+          <h2>Track Application</h2>
+          <p>Enter the Application ID and mobile number used during submission.</p>
+          <label>Application ID<input id="applicationId" placeholder="IBW-2026-000001" autocomplete="off"></label>
+          <label>Mobile Number<input id="trackMobile" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number"></label>
+          <button type="button" id="trackButton" class="primary">Track Status</button>
+          <div id="trackResult" class="result hidden" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section id="finalPaymentView" class="view hidden">
+        <button type="button" class="back" data-view="applications">← Back to Applications</button>
+        <div id="finalPaymentContent"></div>
+      </section>
+
+      <section id="supportView" class="view hidden">
+        <div class="panel support-panel">
+          <div class="support-hero"><div><p class="eyebrow">Help & safety</p><h2>Customer Support</h2><p>Our support channels are available for application, payment and status-related assistance.</p></div><span>24×7 Portal Access</span></div>
+          <div class="support-list">
+            <a id="whatsappLink" class="support-item primary" target="_blank" rel="noopener"><span>💬</span><div><b>WhatsApp Support</b><small>Chat with our support team</small></div></a>
+            <a href="https://t.me/RaghavRaghu1" class="support-item secondary" target="_blank" rel="noopener"><span>✈️</span><div><b>Telegram Support</b><small>Open official Telegram chat</small></div></a>
+            <a href="mailto:indiabusinesswallets@gmail.com?subject=India%20Business%20Wallets%20Support%20Request" class="support-item secondary"><span>✉️</span><div><b>Email Support</b><small>indiabusinesswallets@gmail.com</small></div></a>
+            <a id="channelLink" class="support-item secondary" target="_blank" rel="noopener"><span>📢</span><div><b>Official Channel</b><small>Updates and announcements</small></div></a>
+          </div>
+          <div class="safety-card"><h3>Safety Guidelines</h3><ul><li>Never share OTP, UPI PIN, password or card PIN.</li><li>Verify the Banking Name before making payment.</li><li>Upload documents only through this official portal.</li><li>Do not pay any extra amount to an agent.</li></ul></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <button type="button" data-view="home">⌂<span>Home</span></button>
+      <button type="button" data-view="services">＋<span>Apply</span></button>
+      <button type="button" data-view="applications">▣<span>Applications</span></button>
+      <button type="button" data-view="track">⌕<span>Track</span></button>
+      <button type="button" data-view="support">?<span>Support</span></button>
+    </footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/website/website.js?v=3"></script>
+</body>
+</html>
