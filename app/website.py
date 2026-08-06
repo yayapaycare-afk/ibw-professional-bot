@@ -64,7 +64,18 @@ def _resolve_file(stored_path: str | None) -> str | None:
 
 
 def _is_upload(value: object) -> bool:
-    return isinstance(value, UploadFile) and bool(value.filename)
+    """Accept uploads returned by Starlette/FastAPI form parsing.
+
+    Some Starlette versions return ``starlette.datastructures.UploadFile``
+    instead of the FastAPI subclass, so a strict ``isinstance`` check can
+    reject a real selected file.  Duck-typing keeps this compatible across
+    versions while still requiring an actual filename and readable stream.
+    """
+    if value is None:
+        return False
+    filename = getattr(value, "filename", None)
+    read_method = getattr(value, "read", None)
+    return bool(filename and callable(read_method))
 
 
 async def _save_upload(upload: UploadFile, prefix: str) -> str:
