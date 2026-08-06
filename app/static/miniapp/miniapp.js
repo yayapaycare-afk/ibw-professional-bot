@@ -17,6 +17,7 @@
   function showView(name) {
     views.forEach((view) => view.classList.toggle("hidden", view.id !== `${name}View`));
     document.querySelectorAll(".bottom-nav [data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === name));
+    document.querySelectorAll(".quick-grid [data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === name));
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (name === "applications") loadApplications();
   }
@@ -59,13 +60,24 @@
     document.querySelectorAll(".apply-wallet").forEach((button) => button.addEventListener("click", () => openApplication(Number(button.dataset.walletId))));
   }
 
+  function effectiveManualKind(doc) {
+    const configured = String(doc.manual_kind || "").toLowerCase();
+    const searchable = `${doc.name || ""} ${doc.manual_label || ""}`.toLowerCase();
+    if (configured === "bank" || searchable.includes("bank") || searchable.includes("ifsc") || searchable.includes("account number")) return "bank";
+    if (configured === "mobile" || searchable.includes("mobile") || searchable.includes("phone")) return "mobile";
+    if (configured === "aadhaar" || configured === "aadhar" || searchable.includes("aadhaar") || searchable.includes("aadhar")) return "aadhaar";
+    if (configured === "pan" || searchable.includes("pan card") || searchable.includes("pan number")) return "pan";
+    return configured || "single";
+  }
+
   function inputForDocument(doc) {
     const id = `manual_${doc.id}`;
-    if (doc.manual_kind === "bank") return `<div class="field"><label>Account Number</label><input id="${id}_account" inputmode="numeric" placeholder="Enter Account Number"><label style="margin-top:10px">IFSC Code</label><input id="${id}_ifsc" autocapitalize="characters" placeholder="Enter IFSC Code"></div>`;
+    const kind = effectiveManualKind(doc);
+    if (kind === "bank") return `<div class="field"><label>Account Number</label><input id="${id}_account" inputmode="numeric" placeholder="Enter Account Number"><label style="margin-top:10px">IFSC Code</label><input id="${id}_ifsc" autocapitalize="characters" placeholder="Enter IFSC Code"></div>`;
     let type = "text", mode = "text", max = "";
-    if (doc.manual_kind === "mobile") { type = "tel"; mode = "numeric"; max = 'maxlength="15"'; }
-    if (doc.manual_kind === "aadhaar") { mode = "numeric"; max = 'maxlength="12"'; }
-    if (doc.manual_kind === "pan") max = 'maxlength="10" style="text-transform:uppercase"';
+    if (kind === "mobile") { type = "tel"; mode = "numeric"; max = 'maxlength="15"'; }
+    if (kind === "aadhaar") { mode = "numeric"; max = 'maxlength="12"'; }
+    if (kind === "pan") max = 'maxlength="10" style="text-transform:uppercase"';
     return `<div class="field"><label for="${id}">${escapeHtml(doc.manual_label || doc.name)}</label><input id="${id}" type="${type}" inputmode="${mode}" ${max} placeholder="${escapeHtml(doc.manual_label || doc.name)}"></div>`;
   }
 
@@ -109,13 +121,14 @@
   function manualValue(doc) {
     const manualArea = $(`manualArea_${doc.id}`);
     if (!manualArea || manualArea.classList.contains("hidden")) return "";
-    if (doc.manual_kind === "bank") {
+    const kind = effectiveManualKind(doc);
+    if (kind === "bank") {
       const account = $(`manual_${doc.id}_account`).value.trim();
       const ifsc = $(`manual_${doc.id}_ifsc`).value.trim().toUpperCase();
       return account || ifsc ? JSON.stringify({ account_number: account, ifsc }) : "";
     }
     let value = $(`manual_${doc.id}`)?.value.trim() || "";
-    if (doc.manual_kind === "pan") value = value.toUpperCase();
+    if (kind === "pan") value = value.toUpperCase();
     return value;
   }
 
