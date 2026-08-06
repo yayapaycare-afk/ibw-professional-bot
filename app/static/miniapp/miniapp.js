@@ -10,6 +10,38 @@
   const $ = (id) => document.getElementById(id);
   const escapeHtml = (value) => { const div = document.createElement("div"); div.textContent = String(value ?? ""); return div.innerHTML; };
   const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
+  let toastTimer = null;
+  function showToast(message) {
+    const toast = $("copyToast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 1800);
+  }
+  async function copyText(value, successMessage) {
+    const text = String(value || "").trim();
+    if (!text || text === "Contact Support") return;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.focus();
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+      tg?.HapticFeedback?.notificationOccurred("success");
+      showToast(successMessage);
+    } catch (_) {
+      showToast("Copy failed — long press to copy");
+    }
+  }
   const walletLogo = (name) => {
     const key = String(name || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     const logos = {
@@ -76,12 +108,12 @@
         <div class="wallet-top">
           <div class="wallet-title-wrap">
             ${logoMarkup(wallet)}
-            <div><h3>${escapeHtml(wallet.name)}</h3><p>${escapeHtml(wallet.processing_time || "Subject to verification")}</p></div>
+            <div><h3>${escapeHtml(wallet.name)}</h3><div class="processing-info"><span>Estimated Wallet Processing Time</span><b>${escapeHtml(wallet.processing_time || "Subject to verification")}</b><small>Time may vary depending on document verification.</small></div></div>
           </div>
           <div class="price">${money(wallet.total_fee)}</div>
         </div>
         ${wallet.description ? `<p>${escapeHtml(wallet.description)}</p>` : ""}
-        <div class="fee-grid"><div class="fee-box"><b>First Payment</b><span>${money(wallet.initial_amount)}</span><small>${wallet.initial_percent}%</small></div><div class="fee-box"><b>Remaining</b><span>${money(wallet.remaining_amount)}</span><small>After wallet ready</small></div></div>
+        <div class="fee-grid"><div class="fee-box"><b>First Payment</b><span>${money(wallet.initial_amount)}</span><small>Pay at application start</small></div><div class="fee-box"><b>Remaining</b><span>${money(wallet.remaining_amount)}</span><small>After wallet ready</small></div></div>
         <div class="doc-chips">${wallet.documents.map((doc) => `<span class="doc-chip">${escapeHtml(doc.name)}</span>`).join("")}</div>
         <button type="button" class="primary-btn apply-wallet" data-wallet-id="${wallet.id}">Apply for ${escapeHtml(wallet.name)}</button>
       </article>`).join("");
@@ -132,7 +164,7 @@
         ${selectedWallet.documents.map(documentBlock).join("")}
         <div class="form-card"><h3>Initial Payment</h3>
           ${selectedWallet.has_qr ? `<div class="qr-card"><img src="/miniapp/wallet/${selectedWallet.id}/qr" alt="Payment QR"></div>` : '<div class="empty">Payment QR is not configured. Please use the UPI details below.</div>'}
-          <div class="payment-meta"><div><b>Amount</b><br>${money(selectedWallet.initial_amount)}</div><div><b>UPI ID</b><br>${escapeHtml(selectedWallet.upi_id || "Contact Support")}</div><div><b>Banking Name</b><br>${escapeHtml(selectedWallet.banking_name || "Verify in UPI App")}</div><div><b>Remaining</b><br>${money(selectedWallet.remaining_amount)}</div></div>
+          <div class="payment-meta"><div><b>Amount</b><br>${money(selectedWallet.initial_amount)}</div><button type="button" class="copyable payment-copy" data-copy-value="${escapeHtml(selectedWallet.upi_id || "")}" data-copy-message="UPI ID copied ✅"><b>UPI ID</b><br><span>${escapeHtml(selectedWallet.upi_id || "Contact Support")}</span><small>Tap to copy</small></button><div><b>Banking Name</b><br>${escapeHtml(selectedWallet.banking_name || "Verify in UPI App")}</div><div><b>Remaining</b><br>${money(selectedWallet.remaining_amount)}</div></div>
           <div class="field" style="margin-top:14px"><label for="initialUtr">UTR Number *</label><input id="initialUtr" autocomplete="off" placeholder="Enter payment UTR"></div>
           <div class="field"><label for="initialReceipt">Payment Receipt *</label><input id="initialReceipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><small>JPG, PNG, WEBP or PDF • Max 10 MB</small></div>
         </div>
@@ -181,7 +213,7 @@
     button.disabled = true; button.textContent = "Submitting securely…";
     try {
       const data = await formApi("/miniapp/api/applications", form);
-      $("successCode").textContent = data.application.application_id;
+      $("successCode").textContent = data.application.application_id; $("successCode").dataset.copyValue = data.application.application_id;
       $("successWallet").textContent = `${data.application.wallet} • ${data.application.status_label}`;
       tg?.HapticFeedback?.notificationOccurred("success"); showView("success");
     } catch (error) {
@@ -197,7 +229,7 @@
       const data = await jsonApi("/miniapp/api/my-applications", { init_data: initData });
       if (!data.applications.length) { list.innerHTML = '<div class="empty">No submitted applications found.</div>'; return; }
       list.innerHTML = data.applications.map((item) => `
-        <article class="application-card"><div class="application-top"><div><h3>${escapeHtml(item.application_id)}</h3><p>${escapeHtml(item.wallet)}</p></div><span class="badge">${escapeHtml(item.status_label)}</span></div>
+        <article class="application-card"><div class="application-top"><div><button type="button" class="copyable application-id-copy" data-copy-value="${escapeHtml(item.application_id)}" data-copy-message="Application ID copied ✅">${escapeHtml(item.application_id)}<small>Tap to copy</small></button><p>${escapeHtml(item.wallet)}</p></div><span class="badge">${escapeHtml(item.status_label)}</span></div>
         <p>Initial Paid: ${money(item.paid_initial)} • Remaining: ${money(item.remaining_amount)}</p>
         ${item.status === "WALLET_READY" && !item.final_payment_submitted ? `<div class="application-actions"><button type="button" class="primary-btn final-payment-btn" data-id="${item.id}">Submit Final Payment</button></div>` : ""}</article>`).join("");
       document.querySelectorAll(".final-payment-btn").forEach((button) => button.addEventListener("click", () => openFinalPayment(Number(button.dataset.id))));
@@ -209,7 +241,7 @@
     if (!initData) { result.textContent = "Open this portal from Telegram Bot for secure tracking."; return; }
     if (!code) { result.textContent = "Please enter Application ID."; return; }
     result.textContent = "Checking…";
-    try { const data = await jsonApi("/miniapp/api/track", { init_data: initData, application_id: code }); const item = data.application; result.innerHTML = `<b>${escapeHtml(item.application_id)}</b><br>${escapeHtml(item.wallet)}<br><span class="badge" style="margin-top:8px">${escapeHtml(item.status_label)}</span>`; }
+    try { const data = await jsonApi("/miniapp/api/track", { init_data: initData, application_id: code }); const item = data.application; result.innerHTML = `<button type="button" class="copyable application-id-copy" data-copy-value="${escapeHtml(item.application_id)}" data-copy-message="Application ID copied ✅">${escapeHtml(item.application_id)}<small>Tap to copy</small></button><br>${escapeHtml(item.wallet)}<br><span class="badge" style="margin-top:8px">${escapeHtml(item.status_label)}</span>`; }
     catch (error) { result.textContent = error.message; }
   }
 
@@ -217,7 +249,7 @@
     activeFinalApplicationId = applicationId;
     try {
       const info = await jsonApi("/miniapp/api/final-payment-info", { init_data: initData, application_id: applicationId });
-      $("finalPaymentContent").innerHTML = `<div class="apply-summary"><p class="eyebrow">Final Payment</p><h2>${escapeHtml(info.application_id)}</h2><p>Remaining Amount ${money(info.remaining_amount)}</p></div><form id="finalPaymentForm"><div class="form-card"><h3>Complete Remaining Payment</h3>${info.has_qr ? '<div class="qr-card"><img src="/miniapp/final-payment-qr" alt="Final Payment QR"></div>' : ""}<div class="payment-meta"><div><b>UPI ID</b><br>${escapeHtml(info.upi_id || "Contact Support")}</div><div><b>Banking Name</b><br>${escapeHtml(info.banking_name || "Verify in UPI App")}</div></div><div class="field" style="margin-top:14px"><label for="finalUtr">UTR Number *</label><input id="finalUtr" placeholder="Enter final payment UTR"></div><div class="field"><label for="finalReceipt">Payment Receipt *</label><input id="finalReceipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div></div><div id="finalError" class="error-box hidden"></div><button id="submitFinalPayment" class="primary-btn" type="submit">Submit Final Payment</button></form>`;
+      $("finalPaymentContent").innerHTML = `<div class="apply-summary"><p class="eyebrow">Final Payment</p><button type="button" class="copyable final-app-id" data-copy-value="${escapeHtml(info.application_id)}" data-copy-message="Application ID copied ✅">${escapeHtml(info.application_id)}<small>Tap to copy</small></button><p>Remaining Amount ${money(info.remaining_amount)}</p></div><form id="finalPaymentForm"><div class="form-card"><h3>Complete Remaining Payment</h3>${info.has_qr ? '<div class="qr-card"><img src="/miniapp/final-payment-qr" alt="Final Payment QR"></div>' : ""}<div class="payment-meta"><button type="button" class="copyable payment-copy" data-copy-value="${escapeHtml(info.upi_id || "")}" data-copy-message="UPI ID copied ✅"><b>UPI ID</b><br><span>${escapeHtml(info.upi_id || "Contact Support")}</span><small>Tap to copy</small></button><div><b>Banking Name</b><br>${escapeHtml(info.banking_name || "Verify in UPI App")}</div></div><div class="field" style="margin-top:14px"><label for="finalUtr">UTR Number *</label><input id="finalUtr" placeholder="Enter final payment UTR"></div><div class="field"><label for="finalReceipt">Payment Receipt *</label><input id="finalReceipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"></div></div><div id="finalError" class="error-box hidden"></div><button id="submitFinalPayment" class="primary-btn" type="submit">Submit Final Payment</button></form>`;
       $("finalPaymentForm").addEventListener("submit", submitFinalPayment); showView("finalPayment");
     } catch (error) { showNotice(error.message); }
   }
@@ -236,7 +268,10 @@
   $("refreshApplications")?.addEventListener("click", loadApplications);
   $("trackButton")?.addEventListener("click", trackApplication);
   $("applicationId")?.addEventListener("keydown", (event) => { if (event.key === "Enter") trackApplication(); });
-  if (initUser) $("welcomeName").textContent = [initUser.first_name, initUser.last_name].filter(Boolean).join(" ") || "User";
-  else showNotice("Preview mode: services are visible, but application submission and tracking require Telegram verified access.");
-  loadBootstrap();
-})();
+  document.addEventListener("click", (event) => {
+    const target = event.target.closest("[data-copy-value]");
+    if (!target) return;
+    copyText(target.dataset.copyValue, target.dataset.copyMessage || "Copied ✅");
+  });
+
+  if (initUser && $("welcomeName")) $("welc
