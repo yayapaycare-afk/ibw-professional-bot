@@ -73,7 +73,7 @@
       <section id="homeView" class="view">
         <div class="hero">
           <div class="hero-copy">
-            <span class="trust-pill">✓ Trusted Business Wallet Services Across India</span>
+            <span class="trust-pill">Trusted Business Wallet Services Across India</span>
             <h1>Open Your Business Wallet Online</h1>
             <p>Choose your wallet, submit documents securely, complete payment and track every update using your Application ID.</p>
             <div class="hero-actions">
@@ -329,7 +329,7 @@
       <div class="apply-summary"><div class="apply-summary-brand"><img class="wallet-logo" src="${logo(w.name)}" alt="${esc(w.name)} logo"><div><p class="eyebrow">New website application</p><h2>${esc(w.name)}</h2><p>Total Fee ${money(w.total_fee)} • First Payment ${money(w.initial_amount)}</p></div></div></div>
       <form id="applicationForm" class="application-layout">
         <div>
-          <div class="form-card"><h3>Customer Details</h3><div class="field"><label>Full Name *<input id="fullName" maxlength="150" autocomplete="name" placeholder="Enter full name"></label><label>Mobile Number *<input id="mobileNumber" inputmode="numeric" maxlength="10" autocomplete="tel" placeholder="10-digit mobile number"></label></div></div>
+          <div class="form-card customer-details-card"><h3>Customer Details</h3><div class="field"><label>Full Name *<input id="fullName" maxlength="150" autocomplete="name" placeholder="Enter full name"></label></div></div>
           ${(w.documents || []).map(documentBlock).join("")}
         </div>
         <aside class="payment-sidebar">
@@ -371,7 +371,9 @@
     errorBox.classList.add("hidden");
     if (!receipt) { errorBox.textContent = "Please select the initial payment receipt."; errorBox.classList.remove("hidden"); return; }
     const form = new FormData();
-    form.append("full_name", $("fullName").value.trim()); form.append("mobile_number", $("mobileNumber").value.trim());
+    const mobileDocument = (state.selectedWallet.documents || []).find((d) => docKind(d) === "mobile");
+    const mobileNumber = mobileDocument ? (manualValue(mobileDocument) || "").replace(/\D/g, "").slice(0, 10) : "";
+    form.append("full_name", $("fullName").value.trim()); form.append("mobile_number", mobileNumber);
     form.append("wallet_id", state.selectedWallet.id); form.append("utr", $("initialUtr").value.trim());
     const manual = {};
     (state.selectedWallet.documents || []).forEach((d) => {
@@ -413,9 +415,18 @@
       if (!data.applications.length) { list.innerHTML = '<div class="empty">No applications found in this browser.</div>'; return; }
       list.innerHTML = `<div class="applications-grid">${data.applications.map((a) => `
         <article class="application-card">
-          <div class="application-card-head"><div class="application-brand"><img src="${logo(a.wallet)}" alt="${esc(a.wallet)} logo"><div><button type="button" class="copyable code" data-copy-value="${esc(a.application_id)}" data-copy-message="Application ID copied ✅">${esc(a.application_id)}</button><p>${esc(a.wallet)}</p></div></div><span class="badge ${a.status === "COMPLETED" ? "completed" : ""}">${esc(a.status_label)}</span></div>
+          <div class="application-card-head">
+            <div class="application-brand">
+              <img src="${logo(a.wallet)}" alt="${esc(a.wallet)} logo">
+              <div class="application-identity">
+                <p class="application-wallet-name">${esc(a.wallet)}</p>
+                <button type="button" class="copyable application-id" data-copy-value="${esc(a.application_id)}" data-copy-message="Application ID copied ✅"><span>${esc(a.application_id)}</span><small>Tap to copy</small></button>
+              </div>
+            </div>
+            <span class="badge ${a.status === "COMPLETED" ? "completed" : ""}">${esc(a.status_label)}</span>
+          </div>
           ${timeline(a.status)}
-          <div class="payment-summary"><div><b>Initial Paid</b><span>${money(a.paid_initial)}</span></div><div><b>Remaining</b><span>${money(a.remaining_amount)}</span></div><div><b>Submitted</b><span>${new Date(a.created_at).toLocaleDateString("en-IN")}</span></div></div>
+          <div class="payment-summary"><div><small>Initial Paid</small><strong>${money(a.paid_initial)}</strong></div><div><small>Remaining</small><strong>${money(a.remaining_amount)}</strong></div><div><small>Submitted</small><strong>${new Date(a.created_at).toLocaleDateString("en-IN")}</strong></div></div>
           ${a.status === "WALLET_READY" && !a.final_payment_submitted ? `<button type="button" class="primary final-btn" data-id="${a.id}">Submit Final Payment</button>` : ""}
           ${ratingMarkup(a)}
         </article>`).join("")}</div>`;
