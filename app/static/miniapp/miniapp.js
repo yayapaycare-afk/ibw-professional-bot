@@ -274,4 +274,4 @@
     copyText(target.dataset.copyValue, target.dataset.copyMessage || "Copied ✅");
   });
 
-  if (initUser && $("welcomeName")) $("welc
+  // Initialize the Mini App after all even
