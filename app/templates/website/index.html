@@ -22,8 +22,52 @@
         <button type="button" data-view="track">Track</button>
         <button type="button" data-view="support">Support</button>
       </nav>
-      <span id="serviceBadge" class="status">Checking…</span>
+      <button type="button" id="menuToggle" class="menu-toggle" aria-label="Open information menu" aria-expanded="false" aria-controls="infoDrawer">
+        <span></span><span></span><span></span>
+      </button>
     </header>
+
+    <div id="drawerBackdrop" class="drawer-backdrop hidden"></div>
+    <aside id="infoDrawer" class="info-drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div class="drawer-brand">
+          <img src="/static/miniapp/logos/ibw-logo.png" alt="India Business Wallets logo">
+          <div><b>India Business Wallets</b><small>Trusted Business Wallet Services Across India 🇮🇳</small></div>
+        </div>
+        <button type="button" id="menuClose" class="drawer-close" aria-label="Close information menu">×</button>
+      </div>
+
+      <div class="drawer-highlights">
+        <span>🔒 Secure Documents</span>
+        <span>₹ Transparent Fees</span>
+        <span>✓ Live Application Tracking</span>
+      </div>
+
+      <nav class="drawer-links" aria-label="Information menu">
+        <button type="button" data-drawer-view="home">About India Business Wallets</button>
+        <button type="button" data-drawer-view="home" data-scroll-target="processSection">How It Works</button>
+        <button type="button" data-drawer-view="services">Available Wallet Services</button>
+        <button type="button" data-drawer-view="track">Track Application</button>
+        <button type="button" data-drawer-view="support" data-scroll-target="safetySection">Privacy & Security</button>
+        <button type="button" data-drawer-view="support">Customer Support</button>
+      </nav>
+
+      <a class="community-card" href="https://t.me/+CWFeBXccIuRhYzU1" target="_blank" rel="noopener">
+        <span class="community-icon">★</span>
+        <div><b>Join the IBW Community</b><small>Get important updates, support, exclusive offers and weekly bonus opportunities.</small></div>
+        <strong>Join Now →</strong>
+      </a>
+
+      <a id="drawerChannelLink" class="drawer-channel" target="_blank" rel="noopener">
+        <img src="/static/miniapp/logos/ibw-logo.png" alt="IBW Official Channel">
+        <div><b>Official Channel</b><small>Latest announcements and service updates</small></div>
+      </a>
+
+      <div class="drawer-footer-info">
+        <span><i class="online-dot"></i> Service Status: Online</span>
+        <span>Working Hours: <b id="drawerWorkingHours">—</b></span>
+      </div>
+    </aside>
 
     <main>
       <section id="homeView" class="view">
@@ -50,7 +94,7 @@
           </div>
         </div>
 
-        <div class="section-intro">
+        <div id="processSection" class="section-intro">
           <p class="eyebrow">Simple & transparent process</p>
           <h2>Apply in three easy steps</h2>
         </div>
@@ -87,7 +131,16 @@
           <p id="successWallet"></p>
           <button type="button" id="successCode" class="code copyable" data-copy-value=""></button>
           <p>Save your Application ID. You can use it anytime to track your current status.</p>
-          <div class="success-actions"><button type="button" class="primary" data-view="applications">View My Applications</button><button type="button" class="secondary" data-view="track">Track Status</button></div>
+          <div class="success-actions">
+            <a id="successWhatsApp" class="primary whatsapp-success" target="_blank" rel="noopener">
+              <span class="support-logo whatsapp-logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M20.5 3.5A11.7 11.7 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.2 1.6 6L.2 24l6.4-1.7a11.8 11.8 0 0 0 5.5 1.4h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.5-8.4Zm-8.4 18.2h-.1a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.5 4.7Zm5.4-7.3c-.3-.2-1.8-.9-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-2-.9-3.4-1.8-4.7-4.1-.4-.6.4-.6 1-1.9.1-.2.1-.4 0-.6l-.9-2.2c-.2-.5-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 3s1.2 3.5 1.4 3.7c.2.2 2.4 3.7 5.8 5.2.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.1-.3-.2-.6-.4Z"/></svg>
+              </span>
+              Contact Agent Through WhatsApp
+            </a>
+            <button type="button" class="secondary" data-view="applications">View My Applications</button>
+            <button type="button" class="secondary" data-view="track">Track Status</button>
+          </div>
         </div>
       </section>
 
@@ -120,12 +173,24 @@
         <div class="panel support-panel">
           <div class="support-hero"><div><p class="eyebrow">Help & safety</p><h2>Customer Support</h2><p>Our support channels are available for application, payment and status-related assistance.</p></div><span>24×7 Portal Access</span></div>
           <div class="support-list">
-            <a id="whatsappLink" class="support-item primary" target="_blank" rel="noopener"><span>💬</span><div><b>WhatsApp Support</b><small>Chat with our support team</small></div></a>
-            <a href="https://t.me/RaghavRaghu1" class="support-item secondary" target="_blank" rel="noopener"><span>✈️</span><div><b>Telegram Support</b><small>Open official Telegram chat</small></div></a>
-            <a href="mailto:indiabusinesswallets@gmail.com?subject=India%20Business%20Wallets%20Support%20Request" class="support-item secondary"><span>✉️</span><div><b>Email Support</b><small>indiabusinesswallets@gmail.com</small></div></a>
-            <a id="channelLink" class="support-item secondary" target="_blank" rel="noopener"><span>📢</span><div><b>Official Channel</b><small>Updates and announcements</small></div></a>
+            <a id="whatsappLink" class="support-item primary" target="_blank" rel="noopener">
+              <span class="support-logo whatsapp-logo"><svg viewBox="0 0 24 24"><path d="M20.5 3.5A11.7 11.7 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.2 1.6 6L.2 24l6.4-1.7a11.8 11.8 0 0 0 5.5 1.4h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.1-3.5-8.4Zm-8.4 18.2h-.1a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.5 4.7Zm5.4-7.3c-.3-.2-1.8-.9-2-.9-.3-.1-.5-.2-.7.2-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-2-.9-3.4-1.8-4.7-4.1-.4-.6.4-.6 1-1.9.1-.2.1-.4 0-.6l-.9-2.2c-.2-.5-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 3s1.2 3.5 1.4 3.7c.2.2 2.4 3.7 5.8 5.2.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.1-.3-.2-.6-.4Z"/></svg></span>
+              <div><b>WhatsApp Support</b><small>Chat with our support team</small></div>
+            </a>
+            <a href="https://t.me/Indiabusinesswallet" class="support-item secondary" target="_blank" rel="noopener">
+              <span class="support-logo telegram-logo"><svg viewBox="0 0 24 24"><path d="M21.8 2.3 2.9 9.6c-1.3.5-1.3 1.2-.2 1.5l4.8 1.5 1.9 5.8c.2.6.1.9.8.9.5 0 .8-.2 1-.4l2.4-2.3 5 3.7c.9.5 1.6.2 1.8-.9l3.2-15.2c.3-1.4-.5-2.1-1.8-1.9ZM9.4 12.2l9.4-5.9c.5-.3.9-.1.5.2l-7.7 7-.3 3.2-1.9-4.5Z"/></svg></span>
+              <div><b>Telegram Support</b><small>Open official Telegram chat</small></div>
+            </a>
+            <a href="mailto:indiabusinesswallets@gmail.com?subject=India%20Business%20Wallets%20Support%20Request" class="support-item secondary">
+              <span class="support-logo email-logo"><svg viewBox="0 0 24 24"><path d="M3 4h18a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Zm9 8.8L20.2 7H3.8L12 12.8ZM3 18h18V8.5l-8.4 6a1 1 0 0 1-1.2 0L3 8.5V18Z"/></svg></span>
+              <div><b>Email Support</b><small>indiabusinesswallets@gmail.com</small></div>
+            </a>
+            <a id="channelLink" class="support-item secondary" target="_blank" rel="noopener">
+              <span class="support-logo ibw-channel-logo"><img src="/static/miniapp/logos/ibw-logo.png" alt="IBW logo"></span>
+              <div><b>Official Channel</b><small>Updates and announcements</small></div>
+            </a>
           </div>
-          <div class="safety-card"><h3>Safety Guidelines</h3><ul><li>Never share OTP, UPI PIN, password or card PIN.</li><li>Verify the Banking Name before making payment.</li><li>Upload documents only through this official portal.</li><li>Do not pay any extra amount to an agent.</li></ul></div>
+          <div id="safetySection" class="safety-card"><h3>Safety Guidelines</h3><ul><li>Never share OTP, UPI PIN, password or card PIN.</li><li>Verify the Banking Name before making payment.</li><li>Upload documents only through this official portal.</li><li>Do not pay any extra amount to an agent.</li></ul></div>
         </div>
       </section>
     </main>
@@ -206,12 +271,10 @@
     try {
       state.bootstrap = await api("/website/api/bootstrap");
       $("workingHours").textContent = state.bootstrap.working_hours || "—";
-      const badge = $("serviceBadge");
-      badge.textContent = state.bootstrap.service_available ? "● ONLINE" : "● CLOSED";
-      badge.classList.toggle("online", !!state.bootstrap.service_available);
-      badge.classList.toggle("offline", !state.bootstrap.service_available);
+      if ($("drawerWorkingHours")) $("drawerWorkingHours").textContent = state.bootstrap.working_hours || "—";
       if ($("whatsappLink")) $("whatsappLink").href = state.bootstrap.whatsapp_number ? `https://wa.me/${state.bootstrap.whatsapp_number}` : "https://wa.me/";
       if ($("channelLink")) $("channelLink").href = state.bootstrap.official_channel || "https://t.me/";
+      if ($("drawerChannelLink")) $("drawerChannelLink").href = state.bootstrap.official_channel || "https://t.me/";
       renderWallets();
     } catch (error) {
       $("walletList").innerHTML = `<div class="empty">${esc(error.message)}</div>`;
@@ -320,7 +383,11 @@
     try {
       const data = await api("/website/api/applications", form, true);
       $("successCode").textContent = data.application.application_id; $("successCode").dataset.copyValue = data.application.application_id;
-      $("successWallet").textContent = `${data.application.wallet} • ${data.application.status_label}`; showView("success");
+      $("successWallet").textContent = `${data.application.wallet} • ${data.application.status_label}`;
+      const waMessage = `Hello India Business Wallets Team,\n\nI have successfully submitted my ${data.application.wallet} application.\n\nApplication ID: ${data.application.application_id}\n\nPlease assign an agent and check my application.`;
+      const waNumber = String(state.bootstrap?.whatsapp_number || "").replace(/\D/g, "");
+      if ($("successWhatsApp")) $("successWhatsApp").href = waNumber ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMessage)}` : `https://wa.me/?text=${encodeURIComponent(waMessage)}`;
+      showView("success");
     } catch (error) { errorBox.textContent = error.message; errorBox.classList.remove("hidden"); }
     finally { button.disabled = false; button.textContent = "Submit Application Securely"; }
   }
@@ -396,6 +463,32 @@
     catch (error) { errorBox.textContent = error.message; errorBox.classList.remove("hidden"); }
     finally { button.disabled = false; button.textContent = "Submit Final Payment"; }
   }
+
+  const openDrawer = () => {
+    $("infoDrawer")?.classList.add("open");
+    $("drawerBackdrop")?.classList.remove("hidden");
+    $("infoDrawer")?.setAttribute("aria-hidden", "false");
+    $("menuToggle")?.setAttribute("aria-expanded", "true");
+    document.body.classList.add("drawer-open");
+  };
+  const closeDrawer = () => {
+    $("infoDrawer")?.classList.remove("open");
+    $("drawerBackdrop")?.classList.add("hidden");
+    $("infoDrawer")?.setAttribute("aria-hidden", "true");
+    $("menuToggle")?.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("drawer-open");
+  };
+  $("menuToggle")?.addEventListener("click", openDrawer);
+  $("menuClose")?.addEventListener("click", closeDrawer);
+  $("drawerBackdrop")?.addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeDrawer(); });
+  document.querySelectorAll("[data-drawer-view]").forEach((button) => button.addEventListener("click", () => {
+    const view = button.dataset.drawerView;
+    const targetId = button.dataset.scrollTarget;
+    closeDrawer();
+    showView(view);
+    if (targetId) window.setTimeout(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" }), 180);
+  }));
 
   document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => showView(button.dataset.view)));
   $("refreshWallets")?.addEventListener("click", loadBootstrap);
