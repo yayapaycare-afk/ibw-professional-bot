@@ -48,83 +48,115 @@
   .application-card .payment-summary strong{font-size:12px}
 }
 
-/* Professional dark mobile bottom navigation */
+/* Professional dark mobile bottom navigation — cache-safe and tightly scoped */
 @media(max-width:960px){
-  body{padding-bottom:104px}
+  body{padding-bottom:102px}
   footer.mobile-bottom-nav{
-    position:fixed;
-    left:10px;
-    right:10px;
-    bottom:8px;
-    z-index:50;
-    display:grid;
-    grid-template-columns:repeat(5,minmax(0,1fr));
-    gap:4px;
-    padding:8px 7px calc(8px + env(safe-area-inset-bottom));
-    background:linear-gradient(145deg,#071a36,#0b2d5c 55%,#123f79);
-    border:1px solid rgba(255,255,255,.10);
-    border-radius:22px;
-    box-shadow:0 16px 40px rgba(4,18,39,.30),inset 0 1px 0 rgba(255,255,255,.08);
-    backdrop-filter:blur(18px);
+    position:fixed!important;
+    left:10px!important;
+    right:10px!important;
+    bottom:8px!important;
+    z-index:50!important;
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:4px!important;
+    margin:0!important;
+    padding:8px 7px calc(8px + env(safe-area-inset-bottom))!important;
+    min-height:74px!important;
+    background:linear-gradient(145deg,#071a36,#0b2d5c 58%,#123f79)!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    border-radius:22px!important;
+    box-shadow:0 16px 40px rgba(4,18,39,.30),inset 0 1px 0 rgba(255,255,255,.08)!important;
+    backdrop-filter:blur(18px)!important;
+    overflow:hidden!important;
   }
-  footer.mobile-bottom-nav button{
-    min-width:0;
-    border:0;
-    background:transparent;
-    color:#9eb0c9;
-    padding:7px 2px 6px;
-    border-radius:15px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-    cursor:pointer;
-    transition:background .18s ease,color .18s ease,transform .18s ease;
-    -webkit-tap-highlight-color:transparent;
+  footer.mobile-bottom-nav>button{
+    appearance:none!important;
+    -webkit-appearance:none!important;
+    min-width:0!important;
+    min-height:58px!important;
+    margin:0!important;
+    border:0!important;
+    background:transparent!important;
+    color:#a9b8cc!important;
+    padding:7px 2px 6px!important;
+    border-radius:15px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:4px!important;
+    font-size:inherit!important;
+    line-height:1!important;
+    cursor:pointer!important;
+    transition:background .18s ease,color .18s ease,transform .18s ease!important;
+    -webkit-tap-highlight-color:transparent!important;
+    overflow:hidden!important;
   }
-  footer.mobile-bottom-nav button:active{transform:scale(.96)}
-  footer.mobile-bottom-nav .nav-icon{
-    width:32px;
-    height:29px;
-    display:grid;
-    place-items:center;
-    border-radius:10px;
+  footer.mobile-bottom-nav>button:active{transform:scale(.96)!important}
+  footer.mobile-bottom-nav>button .nav-icon{
+    width:30px!important;
+    height:28px!important;
+    min-width:30px!important;
+    min-height:28px!important;
+    max-width:30px!important;
+    max-height:28px!important;
+    margin:0!important;
+    padding:0!important;
+    display:grid!important;
+    place-items:center!important;
+    border-radius:10px!important;
+    font-size:0!important;
+    line-height:0!important;
+    overflow:hidden!important;
+    flex:0 0 28px!important;
   }
-  footer.mobile-bottom-nav svg{
-    width:22px;
-    height:22px;
-    fill:none;
-    stroke:currentColor;
-    stroke-width:1.9;
-    stroke-linecap:round;
-    stroke-linejoin:round;
+  footer.mobile-bottom-nav>button .nav-icon svg{
+    display:block!important;
+    width:22px!important;
+    height:22px!important;
+    min-width:22px!important;
+    min-height:22px!important;
+    max-width:22px!important;
+    max-height:22px!important;
+    margin:0!important;
+    padding:0!important;
+    fill:none!important;
+    stroke:currentColor!important;
+    stroke-width:1.9!important;
+    stroke-linecap:round!important;
+    stroke-linejoin:round!important;
+    overflow:visible!important;
   }
-  footer.mobile-bottom-nav .nav-label{
-    display:block;
-    margin:0;
-    max-width:100%;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    font-size:10px;
-    line-height:1.1;
-    font-weight:700;
-    letter-spacing:.01em;
-    white-space:nowrap;
+  footer.mobile-bottom-nav>button .nav-icon svg *{
+    fill:none!important;
+    stroke:currentColor!important;
+    vector-effect:non-scaling-stroke!important;
   }
-  footer.mobile-bottom-nav button.active{
-    color:#fff;
-    background:linear-gradient(145deg,rgba(36,128,255,.96),rgba(23,105,224,.88));
-    box-shadow:0 8px 20px rgba(9,88,193,.34),inset 0 1px 0 rgba(255,255,255,.22);
+  footer.mobile-bottom-nav>button .nav-label{
+    display:block!important;
+    margin:0!important;
+    padding:0!important;
+    max-width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    font-size:10px!important;
+    line-height:1.1!important;
+    font-weight:700!important;
+    letter-spacing:.01em!important;
+    white-space:nowrap!important;
+    color:inherit!important;
   }
-  footer.mobile-bottom-nav button.active .nav-icon{
-    background:rgba(255,255,255,.12);
+  footer.mobile-bottom-nav>button.active{
+    color:#fff!important;
+    background:linear-gradient(145deg,#2480ff,#1769e0)!important;
+    box-shadow:0 8px 20px rgba(9,88,193,.34),inset 0 1px 0 rgba(255,255,255,.22)!important;
   }
+  footer.mobile-bottom-nav>button.active .nav-icon{background:rgba(255,255,255,.12)!important}
   .toast{bottom:112px}
 }
-
 @media(max-width:390px){
-  footer.mobile-bottom-nav{left:7px;right:7px;gap:2px;padding-left:5px;padding-right:5px}
-  footer.mobile-bottom-nav .nav-label{font-size:9px}
-  footer.mobile-bottom-nav .nav-icon{width:29px}
+  footer.mobile-bottom-nav{left:7px!important;right:7px!important;gap:2px!important;padding-left:5px!important;padding-right:5px!important}
+  footer.mobile-bottom-nav>button .nav-label{font-size:9px!important}
+  footer.mobile-bottom-nav>button .nav-icon{width:28px!important;min-width:28px!important;max-width:28px!important}
 }
