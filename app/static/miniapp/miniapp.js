@@ -274,4 +274,10 @@
     copyText(target.dataset.copyValue, target.dataset.copyMessage || "Copied ✅");
   });
 
-  // Initialize the Mini App after all hand
+  // Initialize the Mini App after all handlers are registered
+  // Initialize the Mini App after all handlers are registered
+showView("home");
+loadBootstrap();
+
+console.info("IBW Mini App JS loaded successfully");
+})();
