@@ -47,3 +47,84 @@
   .application-card .payment-summary small{font-size:8px}
   .application-card .payment-summary strong{font-size:12px}
 }
+
+/* Professional dark mobile bottom navigation */
+@media(max-width:960px){
+  body{padding-bottom:104px}
+  footer.mobile-bottom-nav{
+    position:fixed;
+    left:10px;
+    right:10px;
+    bottom:8px;
+    z-index:50;
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:4px;
+    padding:8px 7px calc(8px + env(safe-area-inset-bottom));
+    background:linear-gradient(145deg,#071a36,#0b2d5c 55%,#123f79);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:22px;
+    box-shadow:0 16px 40px rgba(4,18,39,.30),inset 0 1px 0 rgba(255,255,255,.08);
+    backdrop-filter:blur(18px);
+  }
+  footer.mobile-bottom-nav button{
+    min-width:0;
+    border:0;
+    background:transparent;
+    color:#9eb0c9;
+    padding:7px 2px 6px;
+    border-radius:15px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    cursor:pointer;
+    transition:background .18s ease,color .18s ease,transform .18s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  footer.mobile-bottom-nav button:active{transform:scale(.96)}
+  footer.mobile-bottom-nav .nav-icon{
+    width:32px;
+    height:29px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+  }
+  footer.mobile-bottom-nav svg{
+    width:22px;
+    height:22px;
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.9;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+  }
+  footer.mobile-bottom-nav .nav-label{
+    display:block;
+    margin:0;
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:10px;
+    line-height:1.1;
+    font-weight:700;
+    letter-spacing:.01em;
+    white-space:nowrap;
+  }
+  footer.mobile-bottom-nav button.active{
+    color:#fff;
+    background:linear-gradient(145deg,rgba(36,128,255,.96),rgba(23,105,224,.88));
+    box-shadow:0 8px 20px rgba(9,88,193,.34),inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  footer.mobile-bottom-nav button.active .nav-icon{
+    background:rgba(255,255,255,.12);
+  }
+  .toast{bottom:112px}
+}
+
+@media(max-width:390px){
+  footer.mobile-bottom-nav{left:7px;right:7px;gap:2px;padding-left:5px;padding-right:5px}
+  footer.mobile-bottom-nav .nav-label{font-size:9px}
+  footer.mobile-bottom-nav .nav-icon{width:29px}
+}
