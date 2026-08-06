@@ -105,6 +105,10 @@ def _resolve_file(path: str | None) -> str | None:
     return None
 
 
+def _is_uploaded_file(value) -> bool:
+    return bool(value is not None and getattr(value, "filename", None) and hasattr(value, "read"))
+
+
 async def _save_upload(upload: UploadFile, prefix: str) -> str:
     content_type = (upload.content_type or "").lower()
     if content_type not in ALLOWED_MIME_TYPES:
@@ -244,7 +248,7 @@ def register_miniapp_routes(app: FastAPI) -> None:
             raise HTTPException(400, "Invalid document details") from exc
 
         receipt = form.get("receipt")
-        if not isinstance(receipt, UploadFile) or not receipt.filename:
+        if not _is_uploaded_file(receipt):
             raise HTTPException(400, "Initial payment receipt is required")
 
         saved_paths: list[str] = []
@@ -264,7 +268,7 @@ def register_miniapp_routes(app: FastAPI) -> None:
                 for doc in docs:
                     manual = str(manual_values.get(str(doc.id), "")).strip()
                     upload = form.get(f"doc_{doc.id}")
-                    has_upload = isinstance(upload, UploadFile) and bool(upload.filename)
+                    has_upload = _is_uploaded_file(upload)
                     if doc.required and not manual and not has_upload:
                         raise HTTPException(400, f"{doc.name} is required")
                     if manual and not doc.manual_allowed:
@@ -465,7 +469,7 @@ def register_miniapp_routes(app: FastAPI) -> None:
         receipt = form.get("receipt")
         if len(utr) < 6 or len(utr) > 100:
             raise HTTPException(400, "Enter a valid UTR number")
-        if not isinstance(receipt, UploadFile) or not receipt.filename:
+        if not _is_uploaded_file(receipt):
             raise HTTPException(400, "Final payment receipt is required")
 
         receipt_path = await _save_upload(receipt, "final_receipt")
