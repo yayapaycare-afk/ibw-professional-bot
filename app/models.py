@@ -61,6 +61,9 @@ class Application(Base):
     receipt_file: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    source: Mapped[str] = mapped_column(String(20), default="TELEGRAM", index=True)
+    web_visitor_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    customer_mobile: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
 
 class Submission(Base):
@@ -80,6 +83,9 @@ class SystemSetting(Base):
     key: Mapped[str] = mapped_column(String(80), primary_key=True)
     value: Mapped[str] = mapped_column(Text, default="")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    source: Mapped[str] = mapped_column(String(20), default="TELEGRAM", index=True)
+    web_visitor_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    customer_mobile: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
 
 class FinalPayment(Base):
