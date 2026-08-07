@@ -106,6 +106,48 @@ class Rating(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+
+
+class ReferralProfile(Base):
+    __tablename__ = "referral_profiles"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    visitor_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    code: Mapped[str] = mapped_column(String(20), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class ReferralPayout(Base):
+    __tablename__ = "referral_payouts"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    referrer_profile_id: Mapped[int] = mapped_column(ForeignKey("referral_profiles.id", ondelete="CASCADE"), index=True)
+    upi_id: Mapped[str] = mapped_column(String(120))
+    amount: Mapped[int] = mapped_column(Integer, default=0)
+    status: Mapped[str] = mapped_column(String(30), default="REQUESTED", index=True)
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class Referral(Base):
+    __tablename__ = "referrals"
+    __table_args__ = (
+        UniqueConstraint("referred_visitor_hash"),
+        UniqueConstraint("referred_mobile"),
+        UniqueConstraint("application_id"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    referrer_profile_id: Mapped[int] = mapped_column(ForeignKey("referral_profiles.id", ondelete="CASCADE"), index=True)
+    referred_visitor_hash: Mapped[str] = mapped_column(String(64), index=True)
+    referred_mobile: Mapped[str] = mapped_column(String(20), index=True)
+    application_id: Mapped[int | None] = mapped_column(ForeignKey("applications.id", ondelete="SET NULL"), nullable=True, unique=True)
+    application_code: Mapped[str] = mapped_column(String(30), index=True)
+    status: Mapped[str] = mapped_column(String(30), default="PENDING", index=True)
+    reward_amount: Mapped[int] = mapped_column(Integer, default=100)
+    payout_id: Mapped[int | None] = mapped_column(ForeignKey("referral_payouts.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
 class StatusEvent(Base):
     __tablename__ = "status_events"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)

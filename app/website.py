@@ -12,12 +12,12 @@ from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
 from app.db import Session
-from app.models import Application, DocumentRule, FinalPayment, Rating, Submission, SystemSetting, User, Wallet
+from app.models import Application, DocumentRule, FinalPayment, Rating, Referral, ReferralPayout, ReferralProfile, Submission, SystemSetting, User, Wallet
 
 settings = get_settings()
 templates = Jinja2Templates(directory="app/templates")
@@ -25,6 +25,10 @@ COOKIE_NAME = "ibw_web_session"
 COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+REFERRAL_COOKIE_NAME = "ibw_referral_code"
+REFERRAL_COOKIE_MAX_AGE = 60 * 60 * 24 * 90
+REFERRAL_REWARD = 100
+REFERRAL_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 
 def _visitor_hash(token: str) -> str:
@@ -111,6 +115,99 @@ def _mobile(value: str) -> str:
     return normalized
 
 
+
+def _clean_referral_code(value: str | None) -> str:
+    code = re.sub(r"[^A-Z0-9]", "", (value or "").upper())
+    return code if 6 <= len(code) <= 20 else ""
+
+
+def _valid_upi_id(value: str) -> str:
+    upi = (value or "").strip()
+    if len(upi) > 120 or not re.fullmatch(r"[A-Za-z0-9._-]{2,}@[A-Za-z0-9.-]{2,}", upi):
+        raise HTTPException(400, "Enter a valid UPI ID")
+    return upi
+
+
+async def _get_or_create_referral_profile(session, visitor_hash: str) -> ReferralProfile:
+    existing = (await session.scalars(
+        select(ReferralProfile).where(ReferralProfile.visitor_hash == visitor_hash)
+    )).first()
+    if existing:
+        return existing
+
+    for _ in range(12):
+        code = "IBW" + "".join(secrets.choice(REFERRAL_CODE_ALPHABET) for _ in range(7))
+        used = await session.scalar(select(ReferralProfile.id).where(ReferralProfile.code == code))
+        if used:
+            continue
+        profile = ReferralProfile(visitor_hash=visitor_hash, code=code)
+        session.add(profile)
+        await session.flush()
+        return profile
+    raise RuntimeError("Could not create referral code")
+
+
+async def _attach_referral_if_eligible(application_id: int, visitor_hash: str, mobile: str, referral_code: str) -> bool:
+    """Attach referral after the application is safely committed.
+
+    Referral errors never block the customer's wallet application.
+    """
+    code = _clean_referral_code(referral_code)
+    if not code:
+        return False
+
+    async with Session() as session:
+        application = await session.get(Application, application_id)
+        if not application or application.source != "WEBSITE" or not application.application_id:
+            return False
+
+        referrer = (await session.scalars(
+            select(ReferralProfile).where(ReferralProfile.code == code)
+        )).first()
+        if not referrer or referrer.visitor_hash == visitor_hash:
+            return False
+
+        # The reward is only attached to the referred customer's first website application.
+        prior_application = await session.scalar(
+            select(Application.id).where(
+                Application.source == "WEBSITE",
+                Application.id != application.id,
+                Application.application_id.is_not(None),
+                or_(Application.web_visitor_hash == visitor_hash, Application.customer_mobile == mobile),
+            ).limit(1)
+        )
+        if prior_application:
+            return False
+
+        existing_referral = await session.scalar(
+            select(Referral.id).where(
+                or_(
+                    Referral.referred_visitor_hash == visitor_hash,
+                    Referral.referred_mobile == mobile,
+                    Referral.application_id == application.id,
+                )
+            ).limit(1)
+        )
+        if existing_referral:
+            return False
+
+        session.add(Referral(
+            referrer_profile_id=referrer.id,
+            referred_visitor_hash=visitor_hash,
+            referred_mobile=mobile,
+            application_id=application.id,
+            application_code=application.application_id,
+            status="PENDING",
+            reward_amount=REFERRAL_REWARD,
+        ))
+        try:
+            await session.commit()
+        except IntegrityError:
+            await session.rollback()
+            return False
+        return True
+
+
 def register_website_routes(app: FastAPI) -> None:
     @app.middleware("http")
     async def website_session_cookie(request: Request, call_next):
@@ -120,11 +217,23 @@ def register_website_routes(app: FastAPI) -> None:
             token = secrets.token_urlsafe(32)
             created = True
         request.state.web_visitor_token = token
+
+        stored_referral = _clean_referral_code(request.cookies.get(REFERRAL_COOKIE_NAME))
+        incoming_referral = _clean_referral_code(request.query_params.get("ref"))
+        # First valid referral wins so a later link cannot silently replace it.
+        active_referral = stored_referral or incoming_referral
+        request.state.web_referral_code = active_referral
+
         response = await call_next(request)
         if created:
             response.set_cookie(
                 COOKIE_NAME, token, max_age=COOKIE_MAX_AGE, httponly=True,
                 secure=True, samesite="lax", path="/",
+            )
+        if incoming_referral and not stored_referral:
+            response.set_cookie(
+                REFERRAL_COOKIE_NAME, incoming_referral, max_age=REFERRAL_COOKIE_MAX_AGE,
+                httponly=True, secure=True, samesite="lax", path="/",
             )
         return response
 
@@ -179,6 +288,7 @@ def register_website_routes(app: FastAPI) -> None:
     async def submit_application(request: Request):
         form = await request.form()
         visitor_hash = _visitor_hash(request.state.web_visitor_token)
+        referral_code = _clean_referral_code(getattr(request.state, "web_referral_code", ""))
         full_name = str(form.get("full_name", "")).strip()
         if len(full_name) < 2 or len(full_name) > 150:
             raise HTTPException(400, "Enter your full name")
@@ -259,6 +369,14 @@ def register_website_routes(app: FastAPI) -> None:
                 except IntegrityError as exc:
                     await session.rollback()
                     raise HTTPException(409, "This UTR has already been submitted") from exc
+
+                if referral_code:
+                    try:
+                        await _attach_referral_if_eligible(application.id, visitor_hash, mobile, referral_code)
+                    except Exception as exc:
+                        # Referral tracking must never break a paid wallet application.
+                        print(f"Referral attach error for application {application.id}: {exc}")
+
                 return {"success": True, "application": {"id": application.id,
                         "application_id": application.application_id, "wallet": wallet.name,
                         "status": application.status, "status_label": _status_label(application.status)}}
@@ -298,6 +416,120 @@ def register_website_routes(app: FastAPI) -> None:
         return {"application":{"id":application.id,"application_id":application.application_id,"wallet":wallet.name,
             "status":application.status,"status_label":_status_label(application.status),
             "remaining_amount":max(wallet.total_fee-application.amount_due,0)}}
+
+    @app.get("/website/api/referrals")
+    async def referral_dashboard(request: Request):
+        visitor_hash = _visitor_hash(request.state.web_visitor_token)
+        async with Session() as session:
+            profile = await _get_or_create_referral_profile(session, visitor_hash)
+            await session.commit()
+
+            rows = (await session.execute(
+                select(Referral, Application, Wallet, ReferralPayout)
+                .outerjoin(Application, Application.id == Referral.application_id)
+                .outerjoin(Wallet, Wallet.id == Application.wallet_id)
+                .outerjoin(ReferralPayout, ReferralPayout.id == Referral.payout_id)
+                .where(Referral.referrer_profile_id == profile.id)
+                .order_by(Referral.id.desc())
+            )).all()
+
+            referrals = []
+            available_reward = 0
+            earned_total = 0
+            completed_count = 0
+            for referral, application, wallet, payout in rows:
+                if referral.status in {"EARNED", "PAID"}:
+                    completed_count += 1
+                    earned_total += referral.reward_amount
+                if referral.status == "EARNED" and referral.payout_id is None:
+                    available_reward += referral.reward_amount
+
+                if referral.status == "PENDING":
+                    reward_status = "Pending"
+                elif referral.status == "PAID":
+                    reward_status = "Paid"
+                elif payout and payout.status == "REQUESTED":
+                    reward_status = "Payout Requested"
+                else:
+                    reward_status = "Reward Ready"
+
+                referrals.append({
+                    "application_id": referral.application_code,
+                    "wallet": wallet.name if wallet else "Business Wallet",
+                    "status": referral.status,
+                    "reward_status": reward_status,
+                    "reward_amount": referral.reward_amount,
+                    "created_at": referral.created_at.isoformat(),
+                })
+
+            pending_payout = await session.scalar(
+                select(ReferralPayout.amount).where(
+                    ReferralPayout.referrer_profile_id == profile.id,
+                    ReferralPayout.status == "REQUESTED",
+                ).order_by(ReferralPayout.id.desc()).limit(1)
+            ) or 0
+            paid_total = sum(r.reward_amount for r, _, _, _ in rows if r.status == "PAID")
+
+        invite_link = f"{settings.public_base_url.rstrip('/')}/website?ref={profile.code}"
+        return {
+            "code": profile.code,
+            "invite_link": invite_link,
+            "reward_per_success": REFERRAL_REWARD,
+            "invites": len(referrals),
+            "completed": completed_count,
+            "earned_total": earned_total,
+            "available_reward": available_reward,
+            "pending_payout": int(pending_payout),
+            "paid_total": paid_total,
+            "referrals": referrals,
+        }
+
+    @app.post("/website/api/referrals/request-payout")
+    async def request_referral_payout(request: Request):
+        payload = await request.json()
+        upi_id = _valid_upi_id(str(payload.get("upi_id", "")))
+        visitor_hash = _visitor_hash(request.state.web_visitor_token)
+
+        async with Session() as session:
+            profile = (await session.scalars(
+                select(ReferralProfile).where(ReferralProfile.visitor_hash == visitor_hash)
+            )).first()
+            if not profile:
+                raise HTTPException(400, "No referral rewards found")
+
+            existing_request = await session.scalar(
+                select(ReferralPayout.id).where(
+                    ReferralPayout.referrer_profile_id == profile.id,
+                    ReferralPayout.status == "REQUESTED",
+                ).limit(1)
+            )
+            if existing_request:
+                raise HTTPException(409, "A payout request is already pending")
+
+            eligible = (await session.scalars(
+                select(Referral).where(
+                    Referral.referrer_profile_id == profile.id,
+                    Referral.status == "EARNED",
+                    Referral.payout_id.is_(None),
+                ).order_by(Referral.id)
+            )).all()
+            if not eligible:
+                raise HTTPException(400, "No completed referral reward is available for payout")
+
+            amount = sum(item.reward_amount for item in eligible)
+            payout = ReferralPayout(
+                referrer_profile_id=profile.id,
+                upi_id=upi_id,
+                amount=amount,
+                status="REQUESTED",
+            )
+            session.add(payout)
+            await session.flush()
+            for item in eligible:
+                item.payout_id = payout.id
+            await session.commit()
+
+        return {"success": True, "amount": amount, "status": "REQUESTED"}
 
     @app.get("/website/final-payment-qr")
     async def final_qr():

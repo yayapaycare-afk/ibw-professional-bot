@@ -2,7 +2,7 @@ import html
 import mimetypes
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from aiogram import Bot
 from aiogram.enums import ParseMode
@@ -17,7 +17,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.config import get_settings
 from app.db import Session
-from app.models import Wallet, DocumentRule, Application, Submission, User, SystemSetting, FinalPayment, Rating, StatusEvent
+from app.models import Wallet, DocumentRule, Application, Submission, User, SystemSetting, FinalPayment, Rating, StatusEvent, Referral, ReferralPayout, ReferralProfile
 
 settings = get_settings()
 templates = Jinja2Templates(directory="app/templates")
@@ -255,112 +255,6 @@ async def remove_legacy_drafts(session) -> int:
                 pass
     return len(drafts)
 
-
-def _admin_mobile_ui_patch() -> str:
-    """Mobile-only presentation patch for admin navigation and wide tables.
-
-    This intentionally does not change admin routes, database queries, forms,
-    status actions, notifications, uploads, or authentication logic.
-    """
-    return r"""
-<style data-ibw-admin-mobile-fix>
-@media (max-width: 760px) {
-  html, body {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  /* Top admin navigation: app-like horizontal strip instead of clipping. */
-  .ibw-admin-nav {
-    display: flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-    scroll-snap-type: x proximity;
-  }
-  .ibw-admin-nav::-webkit-scrollbar {
-    display: none;
-  }
-  .ibw-admin-nav a,
-  .ibw-admin-nav button {
-    flex: 0 0 auto !important;
-    white-space: nowrap !important;
-    scroll-snap-align: start;
-  }
-
-  /* Any admin table becomes safely swipeable instead of being cut off. */
-  .ibw-table-scroll {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
-    border-radius: 12px;
-  }
-  .ibw-table-scroll table {
-    width: max-content !important;
-    min-width: 720px;
-    max-width: none !important;
-    margin: 0 !important;
-  }
-  .ibw-table-scroll th,
-  .ibw-table-scroll td {
-    white-space: nowrap;
-    vertical-align: top;
-  }
-
-  /* User/source is the one column that benefits from wrapping on phones. */
-  .ibw-table-scroll th:nth-child(2),
-  .ibw-table-scroll td:nth-child(2) {
-    min-width: 180px;
-    white-space: normal;
-  }
-
-  .ibw-table-scroll a,
-  .ibw-table-scroll button {
-    touch-action: manipulation;
-  }
-}
-</style>
-<script data-ibw-admin-mobile-fix>
-document.addEventListener("DOMContentLoaded", function () {
-  // Detect the existing primary admin navigation by its labels, so no
-  // template markup or existing link behavior has to be changed.
-  document.querySelectorAll("nav").forEach(function (nav) {
-    var label = (nav.textContent || "").toLowerCase();
-    if (label.indexOf("dashboard") !== -1 &&
-        (label.indexOf("wallet") !== -1 || label.indexOf("setting") !== -1)) {
-      nav.classList.add("ibw-admin-nav");
-    }
-  });
-
-  // Wrap each existing table once. This preserves every row/link/action and
-  // only adds a mobile horizontal swipe container around it.
-  document.querySelectorAll("table").forEach(function (table) {
-    if (table.closest(".ibw-table-scroll")) return;
-    var wrapper = document.createElement("div");
-    wrapper.className = "ibw-table-scroll";
-    table.parentNode.insertBefore(wrapper, table);
-    wrapper.appendChild(table);
-  });
-});
-</script>
-"""
-
-
 def build_admin_app():
     app = FastAPI(title="IBW Admin")
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -379,34 +273,6 @@ def build_admin_app():
             response.headers["Cache-Control"] = "private, no-store, max-age=0"
             response.headers["Pragma"] = "no-cache"
         return response
-
-
-    @app.middleware("http")
-    async def inject_admin_mobile_ui(request: Request, call_next):
-        """Inject a presentation-only mobile patch into admin HTML pages."""
-        response = await call_next(request)
-        if not request.url.path.startswith("/admin"):
-            return response
-        if "text/html" not in response.headers.get("content-type", "").lower():
-            return response
-
-        body = bytearray()
-        async for chunk in response.body_iterator:
-            body.extend(chunk)
-
-        charset = getattr(response, "charset", None) or "utf-8"
-        page = body.decode(charset, errors="replace")
-        if "data-ibw-admin-mobile-fix" not in page and "</head>" in page:
-            page = page.replace("</head>", _admin_mobile_ui_patch() + "\n</head>", 1)
-
-        # Preserve response headers/status while recalculating Content-Length.
-        headers = dict(response.headers)
-        headers.pop("content-length", None)
-        return HTMLResponse(
-            content=page,
-            status_code=response.status_code,
-            headers=headers,
-        )
 
     @app.get("/service-worker.js")
     async def service_worker():
@@ -492,6 +358,68 @@ def build_admin_app():
                 await set_setting(session, "final_qr_file", path)
             await session.commit()
         return RedirectResponse("/admin/settings?saved=1", 303)
+
+    @app.get("/admin/referrals", response_class=HTMLResponse)
+    async def referral_rewards(request: Request):
+        if not auth(request):
+            return RedirectResponse("/login", 303)
+        async with Session() as session:
+            pending_referrals = await session.scalar(
+                select(func.count(Referral.id)).where(Referral.status == "PENDING")
+            ) or 0
+            ready_rewards = await session.scalar(
+                select(func.count(Referral.id)).where(
+                    Referral.status == "EARNED", Referral.payout_id.is_(None)
+                )
+            ) or 0
+            payout_requests = await session.scalar(
+                select(func.count(ReferralPayout.id)).where(ReferralPayout.status == "REQUESTED")
+            ) or 0
+            paid_amount = await session.scalar(
+                select(func.sum(ReferralPayout.amount)).where(ReferralPayout.status == "PAID")
+            ) or 0
+
+            payouts = (await session.execute(
+                select(ReferralPayout, ReferralProfile)
+                .join(ReferralProfile, ReferralProfile.id == ReferralPayout.referrer_profile_id)
+                .order_by(ReferralPayout.id.desc()).limit(100)
+            )).all()
+            referrals = (await session.execute(
+                select(Referral, ReferralProfile, Application, Wallet)
+                .join(ReferralProfile, ReferralProfile.id == Referral.referrer_profile_id)
+                .outerjoin(Application, Application.id == Referral.application_id)
+                .outerjoin(Wallet, Wallet.id == Application.wallet_id)
+                .order_by(Referral.id.desc()).limit(100)
+            )).all()
+
+        return templates.TemplateResponse("referrals.html", {
+            "request": request,
+            "pending_referrals": pending_referrals,
+            "ready_rewards": ready_rewards,
+            "payout_requests": payout_requests,
+            "paid_amount": int(paid_amount),
+            "payouts": payouts,
+            "referrals": referrals,
+        })
+
+    @app.post("/admin/referrals/payout/{payout_id}/paid")
+    async def mark_referral_payout_paid(request: Request, payout_id: int):
+        if not auth(request):
+            raise HTTPException(403)
+        async with Session() as session:
+            payout = await session.get(ReferralPayout, payout_id, with_for_update=True)
+            if not payout:
+                raise HTTPException(404, "Payout request not found")
+            if payout.status != "PAID":
+                payout.status = "PAID"
+                payout.paid_at = datetime.now(timezone.utc)
+                reward_rows = (await session.scalars(
+                    select(Referral).where(Referral.payout_id == payout.id)
+                )).all()
+                for reward in reward_rows:
+                    reward.status = "PAID"
+                await session.commit()
+        return RedirectResponse("/admin/referrals?paid=1", 303)
 
     @app.get("/admin/wallets", response_class=HTMLResponse)
     async def wallets(request: Request):
@@ -584,6 +512,13 @@ def build_admin_app():
             if old != status:
                 application.status = status
                 session.add(StatusEvent(application_id=aid, old_status=old, new_status=status, source="ADMIN"))
+                if status == "COMPLETED":
+                    referral = (await session.scalars(
+                        select(Referral).where(Referral.application_id == aid)
+                    )).first()
+                    if referral and referral.status == "PENDING":
+                        referral.status = "EARNED"
+                        referral.completed_at = datetime.now(timezone.utc)
                 await session.commit()
                 changed = True
         if changed:
