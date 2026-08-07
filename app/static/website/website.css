@@ -1210,3 +1210,45 @@ body{
   .referral-detail-status strong{font-size:12px}
   .referral-detail-status small{font-size:10px}
 }
+
+
+/* Referral v24 — simple View Details text directly on referral background */
+.referral-view-details{
+  width:100%;
+  min-height:42px;
+  padding:7px 0 9px;
+  margin:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+  color:#d93f6d;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+}
+.referral-view-details b{
+  margin:0;
+  font-size:21px;
+  line-height:1;
+  font-weight:400;
+}
+.referral-view-details:hover,
+.referral-view-details:focus,
+.referral-view-details:active{
+  background:transparent;
+  box-shadow:none;
+}
+@media(max-width:520px){
+  .referral-view-details{
+    min-height:40px;
+    padding:6px 0 8px;
+    font-size:13px;
+  }
+  .referral-view-details b{
+    font-size:19px;
+  }
+}
