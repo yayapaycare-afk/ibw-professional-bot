@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eaf4ff">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=29">
+  <link rel="stylesheet" href="/static/website/website.css?v=30">
 
   <style id="ibw-v28-critical">
     /* v28: one-file critical visual fix */
@@ -524,6 +524,61 @@
       }
     }
 
+  </style>
+
+
+  <style id="ibw-v30-header-size-fix">
+    /* v30 — hamburger visual height matched to the India Business Wallets wordmark */
+    .site-header{
+      min-height:50px !important;
+      height:50px !important;
+      padding:6px 16px !important;
+    }
+
+    .site-header .brand.header-wordmark b{
+      font-size:18px !important;
+      line-height:1.05 !important;
+    }
+
+    .site-header .menu-toggle{
+      width:28px !important;
+      height:24px !important;
+      min-width:28px !important;
+      padding:0 !important;
+      gap:4px !important;
+    }
+
+    .site-header .menu-toggle span{
+      width:24px !important;
+      height:2px !important;
+      min-height:2px !important;
+      margin:0 !important;
+    }
+
+    @media(max-width:390px){
+      .site-header{
+        min-height:48px !important;
+        height:48px !important;
+        padding:6px 13px !important;
+      }
+
+      .site-header .brand.header-wordmark b{
+        font-size:17px !important;
+      }
+
+      .site-header .menu-toggle{
+        width:26px !important;
+        height:22px !important;
+        min-width:26px !important;
+        gap:3.5px !important;
+      }
+
+      .site-header .menu-toggle span{
+        width:22px !important;
+        height:2px !important;
+        min-height:2px !important;
+      }
+    }
   </style>
 
 </head>
