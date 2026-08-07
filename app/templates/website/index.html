@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eaf4ff">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=21">
+  <link rel="stylesheet" href="/static/website/website.css?v=23">
 </head>
 <body>
   <div class="site-shell">
@@ -244,15 +244,9 @@
             </div>
           </div>
 
-          <div class="referral-share-card">
-            <p class="referral-section-label">Your Referral Link</p>
-            <button type="button" id="referralLinkBox" class="referral-link-box" data-copy-value=""><span id="referralLinkText">Loading…</span><b>Copy</b></button>
-            <div class="referral-share-actions">
-              <button type="button" id="shareWhatsApp" class="ref-share whatsapp-share">WhatsApp</button>
-              <button type="button" id="shareTelegram" class="ref-share telegram-share">Telegram</button>
-              <button type="button" id="shareMore" class="ref-share more-share">Share</button>
-            </div>
-          </div>
+          <button type="button" id="openReferralDetails" class="referral-view-details">
+            <span>View Details</span><b aria-hidden="true">›</b>
+          </button>
 
           <div class="referral-payout-card">
             <div class="referral-payout-head"><div><small>AVAILABLE REWARD</small><strong id="refAvailableReward">₹0</strong></div><span id="refPayoutStatus">No payout pending</span></div>
@@ -267,10 +261,25 @@
             <p>₹100 reward is credited only after the referred user's <strong>first</strong> Business Wallet application reaches <strong>Completed</strong>. Opening the link or submitting an incomplete application does not earn a reward. One customer can generate only one referral reward.</p>
           </div>
 
-          <div class="referral-history-card">
-            <div class="referral-history-head"><b>My Referrals</b><button type="button" id="refreshReferrals">Refresh</button></div>
-            <div id="referralHistory"><div class="loading">Loading referrals…</div></div>
+        </div>
+      </section>
+
+
+      <section id="referralDetailsView" class="view hidden">
+        <div class="referral-details-page">
+          <div class="referral-details-topbar">
+            <button type="button" class="referral-details-back" data-view="referral" aria-label="Back to Invite Rewards">‹</button>
+            <h2>View Details</h2>
+            <span></span>
           </div>
+          <div class="referral-details-summary">
+            <div><small>Total Successful Referrals</small><strong id="detailsLifetimeCompleted">0</strong></div>
+            <div><small>Total Award</small><strong id="detailsLifetimeAward">₹0</strong></div>
+          </div>
+          <div id="referralDetailsList" class="referral-details-list">
+            <div class="loading">Loading referral details…</div>
+          </div>
+          <p class="referral-details-note">Completed entries stay in this list for 7 days. Your lifetime successful referral count and total award always remain saved.</p>
         </div>
       </section>
 
@@ -432,7 +441,7 @@
     document.querySelectorAll("[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === name));
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (name === "applications") loadApplications();
-    if (name === "referral") loadReferrals();
+    if (name === "referral" || name === "referralDetails") loadReferrals();
   }
 
   async function api(path, payload = null, form = false) {
@@ -692,23 +701,49 @@
     return `India Business Wallets par Business Wallet apply karein. Mere referral link se join karein: ${state.referral?.invite_link || ""}`;
   }
 
-  function renderReferralHistory(items) {
-    const target = $("referralHistory");
+  function renderReferralDetails(items) {
+    const target = $("referralDetailsList");
     if (!target) return;
+
     if (!items?.length) {
-      target.innerHTML = '<div class="referral-empty">Abhi koi referral application nahi hai. Apna link share karke start karein.</div>';
+      target.innerHTML = `
+        <div class="referral-details-empty">
+          <span>👥</span>
+          <b>No referral applications yet</b>
+          <p>A referred customer will appear here only after successfully submitting their first Business Wallet application.</p>
+        </div>`;
       return;
     }
-    target.innerHTML = items.map((item) => `
-      <div class="referral-history-row">
-        <div><b>${esc(item.wallet)}</b><small>${esc(item.application_id)}</small></div>
-        <div class="referral-history-reward"><strong>${money(item.reward_amount)}</strong><span class="referral-history-status ${item.status === "PAID" ? "paid" : item.status === "EARNED" ? "earned" : "pending"}">${esc(item.reward_status)}</span></div>
-      </div>`).join("");
+
+    target.innerHTML = items.map((item) => {
+      const completed = item.application_status === "COMPLETED";
+      const rejected = item.application_status === "REJECTED";
+      const statusClass = completed ? "completed" : rejected ? "rejected" : "active";
+      const rewardLine = completed
+        ? `<strong class="detail-earned">${money(item.reward_amount)} Earned</strong>`
+        : `<strong class="detail-state">${esc(item.application_status_label)}</strong>`;
+
+      return `
+        <article class="referral-detail-row">
+          <div class="referral-detail-icon" aria-hidden="true">
+            <span>₹</span>
+          </div>
+          <div class="referral-detail-main">
+            <b>${esc(item.mobile || "Referred Customer")}</b>
+            <small>${esc(item.wallet || "Business Wallet")}</small>
+            <span>${esc(item.application_id || "")}</span>
+          </div>
+          <div class="referral-detail-status ${statusClass}">
+            ${rewardLine}
+            <small>${esc(item.application_status_label || "Application Submitted")}</small>
+          </div>
+        </article>`;
+    }).join("");
   }
 
   async function loadReferrals() {
-    const history = $("referralHistory");
-    if (history) history.innerHTML = '<div class="loading">Loading referrals…</div>';
+    const detailsTarget = $("referralDetailsList");
+    if (detailsTarget) detailsTarget.innerHTML = '<div class="loading">Loading referral details…</div>';
     try {
       const data = await api("/website/api/referrals");
       state.referral = data;
@@ -719,17 +754,19 @@
       $("refPendingPayout").textContent = money(data.pending_payout || 0);
       $("refPaidTotal").textContent = money(data.paid_total || 0);
       $("refPayoutStatus").textContent = data.pending_payout ? "Payout request pending" : "No payout pending";
-      $("referralLinkText").textContent = data.invite_link;
-      $("referralLinkBox").dataset.copyValue = data.invite_link;
+      if ($("referralLinkText")) $("referralLinkText").textContent = data.invite_link;
+      if ($("referralLinkBox")) $("referralLinkBox").dataset.copyValue = data.invite_link;
       const payoutButton = $("requestReferralPayout");
       payoutButton.disabled = false;
       payoutButton.dataset.availableReward = String(Number(data.available_reward || 0));
       payoutButton.dataset.pendingPayout = String(Number(data.pending_payout || 0));
       payoutButton.textContent = data.pending_payout ? "Payout Request Pending" : "Request UPI Payout";
       payoutButton.classList.toggle("is-unavailable", !data.available_reward || !!data.pending_payout);
-      renderReferralHistory(data.referrals || []);
+      if ($("detailsLifetimeCompleted")) $("detailsLifetimeCompleted").textContent = data.completed || 0;
+      if ($("detailsLifetimeAward")) $("detailsLifetimeAward").textContent = money(data.earned_total || 0);
+      renderReferralDetails(data.details || []);
     } catch (error) {
-      if (history) history.innerHTML = `<div class="referral-empty">${esc(error.message)}</div>`;
+      if (detailsTarget) detailsTarget.innerHTML = `<div class="referral-details-empty"><b>${esc(error.message)}</b></div>`;
       toast(error.message);
     }
   }
@@ -786,6 +823,10 @@
   }
 
   $("inviteNow")?.addEventListener("click", shareReferralGeneric);
+  $("openReferralDetails")?.addEventListener("click", async () => {
+    await loadReferrals();
+    showView("referralDetails");
+  });
   $("shareMore")?.addEventListener("click", shareReferralGeneric);
   $("shareWhatsApp")?.addEventListener("click", async () => {
     if (!state.referral?.invite_link) await loadReferrals();
@@ -799,7 +840,6 @@
     window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank", "noopener");
   });
   $("requestReferralPayout")?.addEventListener("click", requestReferralPayout);
-  $("refreshReferrals")?.addEventListener("click", loadReferrals);
 
   const openDrawer = () => {
     $("infoDrawer")?.classList.add("open");
