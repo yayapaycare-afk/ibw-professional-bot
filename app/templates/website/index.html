@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eaf4ff">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=24">
+  <link rel="stylesheet" href="/static/website/website.css?v=25">
 </head>
 <body>
   <div class="site-shell">
@@ -248,12 +248,21 @@
             <span>View Details</span><b aria-hidden="true">›</b>
           </button>
 
-          <div class="referral-payout-card">
-            <div class="referral-payout-head"><div><small>AVAILABLE REWARD</small><strong id="refAvailableReward">₹0</strong></div><span id="refPayoutStatus">No payout pending</span></div>
-            <div class="referral-payout-mini"><span>Pending payout <b id="refPendingPayout">₹0</b></span><span>Paid <b id="refPaidTotal">₹0</b></span></div>
-            <label class="referral-upi-label">UPI ID for manual payout<input id="referralUpi" type="text" inputmode="email" autocomplete="off" placeholder="yourname@upi"></label>
-            <button type="button" id="requestReferralPayout" class="referral-payout-btn">Request UPI Payout</button>
-            <small>Admin will manually send your approved reward to this UPI ID and mark it Paid.</small>
+          <div class="referral-payout-card referral-balance-card">
+            <div class="referral-payout-head">
+              <div>
+                <small>AVAILABLE BALANCE</small>
+                <strong id="refAvailableReward">₹0</strong>
+              </div>
+              <span id="refPayoutStatus" class="withdrawal-status">Minimum ₹100</span>
+            </div>
+            <div class="referral-payout-mini">
+              <span>Pending <b id="refPendingPayout">₹0</b></span>
+              <span>Paid <b id="refPaidTotal">₹0</b></span>
+            </div>
+            <div class="withdrawal-minimum-note"><span>₹</span><b>Minimum Withdrawal ₹100</b></div>
+            <label class="referral-upi-label">UPI ID<input id="referralUpi" type="text" inputmode="email" autocomplete="off" placeholder="yourname@upi"></label>
+            <button type="button" id="requestReferralPayout" class="referral-payout-btn">Withdraw to UPI</button>
           </div>
 
           <div class="referral-rule-card">
@@ -753,15 +762,33 @@
       $("refAvailableReward").textContent = money(data.available_reward || 0);
       $("refPendingPayout").textContent = money(data.pending_payout || 0);
       $("refPaidTotal").textContent = money(data.paid_total || 0);
-      $("refPayoutStatus").textContent = data.pending_payout ? "Payout request pending" : "No payout pending";
+      const availableReward = Number(data.available_reward || 0);
+      const pendingPayout = Number(data.pending_payout || 0);
+      const paidTotal = Number(data.paid_total || 0);
+      const payoutStatus = $("refPayoutStatus");
+
+      if (pendingPayout > 0) {
+        payoutStatus.textContent = "Withdrawal Pending";
+        payoutStatus.className = "withdrawal-status pending";
+      } else if (availableReward >= 100) {
+        payoutStatus.textContent = "Ready to Withdraw";
+        payoutStatus.className = "withdrawal-status ready";
+      } else if (paidTotal > 0) {
+        payoutStatus.textContent = "Paid Successfully";
+        payoutStatus.className = "withdrawal-status paid";
+      } else {
+        payoutStatus.textContent = "Minimum ₹100";
+        payoutStatus.className = "withdrawal-status";
+      }
+
       if ($("referralLinkText")) $("referralLinkText").textContent = data.invite_link;
       if ($("referralLinkBox")) $("referralLinkBox").dataset.copyValue = data.invite_link;
       const payoutButton = $("requestReferralPayout");
       payoutButton.disabled = false;
-      payoutButton.dataset.availableReward = String(Number(data.available_reward || 0));
-      payoutButton.dataset.pendingPayout = String(Number(data.pending_payout || 0));
-      payoutButton.textContent = data.pending_payout ? "Payout Request Pending" : "Request UPI Payout";
-      payoutButton.classList.toggle("is-unavailable", !data.available_reward || !!data.pending_payout);
+      payoutButton.dataset.availableReward = String(availableReward);
+      payoutButton.dataset.pendingPayout = String(pendingPayout);
+      payoutButton.textContent = pendingPayout > 0 ? "Withdrawal Pending" : "Withdraw to UPI";
+      payoutButton.classList.toggle("is-unavailable", availableReward < 100 || pendingPayout > 0);
       if ($("detailsLifetimeCompleted")) $("detailsLifetimeCompleted").textContent = data.completed || 0;
       if ($("detailsLifetimeAward")) $("detailsLifetimeAward").textContent = money(data.earned_total || 0);
       renderReferralDetails(data.details || []);
@@ -795,8 +822,8 @@
       toast("Your payout request is already pending.");
       return;
     }
-    if (availableReward <= 0) {
-      toast("No completed referral reward is available for payout yet.");
+    if (availableReward < 100) {
+      toast("Minimum withdrawal amount is ₹100.");
       return;
     }
 
@@ -812,7 +839,10 @@
     button.textContent = "Submitting…";
     try {
       const data = await api("/website/api/referrals/request-payout", { upi_id: upi });
-      toast(`Payout request submitted for ${money(data.amount)} ✅`);
+      $("refPayoutStatus").textContent = "Withdrawal Pending";
+      $("refPayoutStatus").className = "withdrawal-status pending";
+      button.textContent = "Withdrawal Pending";
+      toast(`Withdrawal request submitted for ${money(data.amount)} ✅`);
       $("referralUpi").value = "";
       await loadReferrals();
     } catch (error) {
