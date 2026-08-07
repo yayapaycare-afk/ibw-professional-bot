@@ -1383,3 +1383,69 @@ body{
     font-size:12.5px;
   }
 }
+
+
+/* Website v26 — refined mobile navigation: Home | Applications | Apply | Invite | Support */
+@media(max-width:960px){
+  footer.mobile-bottom-nav{
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    padding-top:8px;
+  }
+
+  footer.mobile-bottom-nav button{
+    position:relative;
+  }
+
+  /* Center Apply is intentionally more prominent, but still clean and app-like. */
+  footer.mobile-bottom-nav button.nav-primary{
+    margin-top:-9px;
+  }
+  footer.mobile-bottom-nav button.nav-primary .nav-icon{
+    width:42px;
+    height:42px;
+    border-radius:15px;
+    background:linear-gradient(145deg,#f1f9ff,#dff2ff)!important;
+    border:1px solid #cfeaf8;
+    box-shadow:0 5px 13px rgba(38,153,209,.12);
+  }
+  footer.mobile-bottom-nav button.nav-primary svg{
+    width:25px;
+    height:25px;
+    stroke-width:1.9;
+  }
+  footer.mobile-bottom-nav button.nav-primary .nav-label{
+    margin-top:0;
+    font-weight:750;
+  }
+
+  footer.mobile-bottom-nav button.nav-primary.active .nav-icon{
+    background:linear-gradient(145deg,#e5f7ff,#d3efff)!important;
+    border-color:#aedaef;
+    box-shadow:0 6px 16px rgba(40,169,232,.17);
+  }
+
+  /* Invite uses the exact same visual language as the other normal tabs. */
+  footer.mobile-bottom-nav button[data-view="referral"] .nav-icon{
+    width:30px;
+    height:27px;
+  }
+  footer.mobile-bottom-nav button[data-view="referral"] svg{
+    width:23px;
+    height:23px;
+  }
+}
+
+@media(max-width:390px){
+  footer.mobile-bottom-nav button.nav-primary{
+    margin-top:-8px;
+  }
+  footer.mobile-bottom-nav button.nav-primary .nav-icon{
+    width:39px;
+    height:39px;
+    border-radius:14px;
+  }
+  footer.mobile-bottom-nav button.nav-primary svg{
+    width:23px;
+    height:23px;
+  }
+}
