@@ -255,6 +255,112 @@ async def remove_legacy_drafts(session) -> int:
                 pass
     return len(drafts)
 
+
+def _admin_mobile_ui_patch() -> str:
+    """Mobile-only presentation patch for admin navigation and wide tables.
+
+    This intentionally does not change admin routes, database queries, forms,
+    status actions, notifications, uploads, or authentication logic.
+    """
+    return r"""
+<style data-ibw-admin-mobile-fix>
+@media (max-width: 760px) {
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Top admin navigation: app-like horizontal strip instead of clipping. */
+  .ibw-admin-nav {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    scroll-snap-type: x proximity;
+  }
+  .ibw-admin-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .ibw-admin-nav a,
+  .ibw-admin-nav button {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    scroll-snap-align: start;
+  }
+
+  /* Any admin table becomes safely swipeable instead of being cut off. */
+  .ibw-table-scroll {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    border-radius: 12px;
+  }
+  .ibw-table-scroll table {
+    width: max-content !important;
+    min-width: 720px;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+  .ibw-table-scroll th,
+  .ibw-table-scroll td {
+    white-space: nowrap;
+    vertical-align: top;
+  }
+
+  /* User/source is the one column that benefits from wrapping on phones. */
+  .ibw-table-scroll th:nth-child(2),
+  .ibw-table-scroll td:nth-child(2) {
+    min-width: 180px;
+    white-space: normal;
+  }
+
+  .ibw-table-scroll a,
+  .ibw-table-scroll button {
+    touch-action: manipulation;
+  }
+}
+</style>
+<script data-ibw-admin-mobile-fix>
+document.addEventListener("DOMContentLoaded", function () {
+  // Detect the existing primary admin navigation by its labels, so no
+  // template markup or existing link behavior has to be changed.
+  document.querySelectorAll("nav").forEach(function (nav) {
+    var label = (nav.textContent || "").toLowerCase();
+    if (label.indexOf("dashboard") !== -1 &&
+        (label.indexOf("wallet") !== -1 || label.indexOf("setting") !== -1)) {
+      nav.classList.add("ibw-admin-nav");
+    }
+  });
+
+  // Wrap each existing table once. This preserves every row/link/action and
+  // only adds a mobile horizontal swipe container around it.
+  document.querySelectorAll("table").forEach(function (table) {
+    if (table.closest(".ibw-table-scroll")) return;
+    var wrapper = document.createElement("div");
+    wrapper.className = "ibw-table-scroll";
+    table.parentNode.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+  });
+});
+</script>
+"""
+
+
 def build_admin_app():
     app = FastAPI(title="IBW Admin")
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -273,6 +379,34 @@ def build_admin_app():
             response.headers["Cache-Control"] = "private, no-store, max-age=0"
             response.headers["Pragma"] = "no-cache"
         return response
+
+
+    @app.middleware("http")
+    async def inject_admin_mobile_ui(request: Request, call_next):
+        """Inject a presentation-only mobile patch into admin HTML pages."""
+        response = await call_next(request)
+        if not request.url.path.startswith("/admin"):
+            return response
+        if "text/html" not in response.headers.get("content-type", "").lower():
+            return response
+
+        body = bytearray()
+        async for chunk in response.body_iterator:
+            body.extend(chunk)
+
+        charset = getattr(response, "charset", None) or "utf-8"
+        page = body.decode(charset, errors="replace")
+        if "data-ibw-admin-mobile-fix" not in page and "</head>" in page:
+            page = page.replace("</head>", _admin_mobile_ui_patch() + "\n</head>", 1)
+
+        # Preserve response headers/status while recalculating Content-Length.
+        headers = dict(response.headers)
+        headers.pop("content-length", None)
+        return HTMLResponse(
+            content=page,
+            status_code=response.status_code,
+            headers=headers,
+        )
 
     @app.get("/service-worker.js")
     async def service_worker():
