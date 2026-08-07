@@ -339,7 +339,127 @@ body{
 @media(max-width:960px){
   .site-header{background:linear-gradient(135deg,rgba(255,255,255,.995),rgba(207,229,255,.99))}
 }
-\n\n/* Phase 2.6 hero information slider — preserves existing actions and stats */\n.hero-info-slider{\n  position:relative;\n  margin-top:16px;\n  overflow:hidden;\n  border-radius:22px;\n  border:1px solid rgba(47,128,237,.18);\n  background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(234,244,255,.78));\n  box-shadow:0 14px 34px rgba(31,91,151,.10);\n}\n.hero-info-track{\n  display:flex;\n  width:100%;\n  transition:transform .62s cubic-bezier(.22,.78,.24,1);\n  will-change:transform;\n}\n.hero-info-slide{\n  flex:0 0 100%;\n  min-width:100%;\n  padding:22px 23px 20px;\n  color:#17324d;\n}\n.hero-slide-kicker{\n  display:inline-flex;\n  align-items:center;\n  width:max-content;\n  max-width:100%;\n  padding:6px 10px;\n  border-radius:999px;\n  background:#dceeff;\n  color:#2169b4;\n  font-size:10px;\n  line-height:1.2;\n  font-weight:900;\n  letter-spacing:.09em;\n}\n.hero-info-slide h1{\n  margin:12px 0 10px;\n  max-width:720px;\n  font-size:clamp(27px,3.9vw,46px);\n  line-height:1.07;\n  letter-spacing:-.028em;\n  color:#17324d;\n}\n.hero-info-slide>p{\n  margin:0;\n  max-width:790px;\n  color:#4d6983;\n  font-size:14px;\n  line-height:1.62;\n}\n.hero-slide-points{\n  display:flex;\n  flex-wrap:wrap;\n  gap:7px;\n  margin-top:14px;\n}\n.hero-slide-points span{\n  display:inline-flex;\n  align-items:center;\n  min-height:30px;\n  padding:6px 10px;\n  border-radius:10px;\n  border:1px solid #cfe5ff;\n  background:rgba(255,255,255,.72);\n  color:#315d86;\n  font-size:10px;\n  font-weight:800;\n}\n.hero-slide-points span:before{\n  content:"✓";\n  display:grid;\n  place-items:center;\n  width:16px;\n  height:16px;\n  margin-right:6px;\n  border-radius:50%;\n  background:#e8f4ff;\n  color:#2f80ed;\n  font-size:10px;\n  font-weight:900;\n}\n.hero-slide-line{\n  display:block;\n  margin-top:14px;\n  color:#245b92;\n  font-size:12px;\n  line-height:1.4;\n}\n.hero-slider-dots{\n  position:absolute;\n  right:15px;\n  bottom:12px;\n  display:flex;\n  gap:6px;\n}\n.hero-slider-dots.single{display:none}\n.hero-slider-dot{\n  width:7px;\n  height:7px;\n  padding:0;\n  border:0;\n  border-radius:999px;\n  background:#aec8e2;\n  cursor:pointer;\n  transition:width .2s ease,background .2s ease;\n}\n.hero-slider-dot.active{width:20px;background:#2f80ed}\n\n@media(max-width:640px){\n  .hero-info-slider{margin-top:13px;border-radius:18px}\n  .hero-info-slide{padding:18px 16px 17px}\n  .hero-info-slide h1{font-size:29px;margin-top:10px}\n  .hero-info-slide>p{font-size:12px;line-height:1.55}\n  .hero-slide-points{gap:6px;margin-top:12px}\n  .hero-slide-points span{font-size:9px;padding:5px 8px;min-height:28px}\n  .hero-slide-line{font-size:10px;margin-top:12px;padding-right:4px}\n}\n
+
+
+/* Phase 2.6 hero information slider — preserves existing actions and stats */
+.hero-info-slider{
+  position:relative;
+  margin-top:16px;
+  overflow:hidden;
+  border-radius:22px;
+  border:1px solid rgba(47,128,237,.18);
+  background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(234,244,255,.78));
+  box-shadow:0 14px 34px rgba(31,91,151,.10);
+}
+.hero-info-track{
+  display:flex;
+  width:100%;
+  transition:transform .62s cubic-bezier(.22,.78,.24,1);
+  will-change:transform;
+}
+.hero-info-slide{
+  flex:0 0 100%;
+  min-width:100%;
+  padding:22px 23px 20px;
+  color:#17324d;
+}
+.hero-slide-kicker{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  max-width:100%;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#dceeff;
+  color:#2169b4;
+  font-size:10px;
+  line-height:1.2;
+  font-weight:900;
+  letter-spacing:.09em;
+}
+.hero-info-slide h1{
+  margin:12px 0 10px;
+  max-width:720px;
+  font-size:clamp(27px,3.9vw,46px);
+  line-height:1.07;
+  letter-spacing:-.028em;
+  color:#17324d;
+}
+.hero-info-slide>p{
+  margin:0;
+  max-width:790px;
+  color:#4d6983;
+  font-size:14px;
+  line-height:1.62;
+}
+.hero-slide-points{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:14px;
+}
+.hero-slide-points span{
+  display:inline-flex;
+  align-items:center;
+  min-height:30px;
+  padding:6px 10px;
+  border-radius:10px;
+  border:1px solid #cfe5ff;
+  background:rgba(255,255,255,.72);
+  color:#315d86;
+  font-size:10px;
+  font-weight:800;
+}
+.hero-slide-points span:before{
+  content:"✓";
+  display:grid;
+  place-items:center;
+  width:16px;
+  height:16px;
+  margin-right:6px;
+  border-radius:50%;
+  background:#e8f4ff;
+  color:#2f80ed;
+  font-size:10px;
+  font-weight:900;
+}
+.hero-slide-line{
+  display:block;
+  margin-top:14px;
+  color:#245b92;
+  font-size:12px;
+  line-height:1.4;
+}
+.hero-slider-dots{
+  position:absolute;
+  right:15px;
+  bottom:12px;
+  display:flex;
+  gap:6px;
+}
+.hero-slider-dots.single{display:none}
+.hero-slider-dot{
+  width:7px;
+  height:7px;
+  padding:0;
+  border:0;
+  border-radius:999px;
+  background:#aec8e2;
+  cursor:pointer;
+  transition:width .2s ease,background .2s ease;
+}
+.hero-slider-dot.active{width:20px;background:#2f80ed}
+
+@media(max-width:640px){
+  .hero-info-slider{margin-top:13px;border-radius:18px}
+  .hero-info-slide{padding:18px 16px 17px}
+  .hero-info-slide h1{font-size:29px;margin-top:10px}
+  .hero-info-slide>p{font-size:12px;line-height:1.55}
+  .hero-slide-points{gap:6px;margin-top:12px}
+  .hero-slide-points span{font-size:9px;padding:5px 8px;min-height:28px}
+  .hero-slide-line{font-size:10px;margin-top:12px;padding-right:4px}
+}
+
 
 /* Phase 2.7 professional homepage slider — 3 information banners */
 .hero-info-slide{padding:0}
@@ -403,3 +523,38 @@ body{
   .hero-slide-layout{padding-left:40px;padding-right:40px;padding-bottom:28px}
 }
 @media(prefers-reduced-motion:reduce){.hero-slider-arrow{transition:none}}
+
+/* Phase 2.8 static hero information cards — slider removed intentionally */
+.hero-info-stack{
+  display:grid;
+  gap:14px;
+  margin-top:14px;
+}
+.hero-info-stack .hero-info-slide{
+  width:100%;
+  flex:none;
+  border:1px solid rgba(47,128,237,.16);
+  border-radius:20px;
+  background:linear-gradient(145deg,rgba(255,255,255,.94),rgba(232,245,255,.82));
+  box-shadow:0 10px 28px rgba(31,91,151,.08);
+  overflow:hidden;
+}
+.hero-info-stack .hero-slide-layout{
+  min-height:0;
+  padding:20px;
+}
+.hero-info-stack .hero-slide-content,
+.hero-info-stack .hero-slide-visual{
+  animation:none!important;
+}
+.hero-info-stack .hero-slide-visual{
+  min-height:210px;
+}
+@media(max-width:760px){
+  .hero-info-stack{gap:12px;margin-top:12px}
+  .hero-info-stack .hero-slide-layout{padding:16px}
+  .hero-info-stack .hero-slide-visual{min-height:118px}
+}
+@media(max-width:390px){
+  .hero-info-stack .hero-slide-layout{padding:14px}
+}
