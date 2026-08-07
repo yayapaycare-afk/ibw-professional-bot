@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b2d5c">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=9">
+  <link rel="stylesheet" href="/static/website/website.css?v=10">
 </head>
 <body>
   <div class="site-shell">
@@ -299,16 +299,49 @@
   function renderWallets() {
     const wallets = state.bootstrap?.wallets || [];
     if (!wallets.length) { $("walletList").innerHTML = '<div class="empty">No wallet service is currently available.</div>'; return; }
+    const clockIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.9"/></svg>';
+    const paymentIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M3 10h18M7 14h3"/></svg>';
+    const documentIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3.5h7l4 4V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z"/><path d="M14 3.5V8h4M9 12h6M9 15.5h6"/></svg>';
     $("walletList").innerHTML = wallets.map((w) => `
-      <article class="wallet-card">
-        <div class="wallet-top">
-          <div class="wallet-brand"><img class="wallet-logo" src="${logo(w.name)}" alt="${esc(w.name)} logo"><div><h3>${esc(w.name)}</h3><div class="processing"><span>Estimated wallet processing time</span><b>${esc(w.processing_time || "Subject to verification")}</b><small>Time may vary depending on document verification.</small></div></div></div>
-          <div class="wallet-price">${money(w.total_fee)}</div>
+      <article class="wallet-card wallet-card-pro">
+        <div class="wallet-pro-head">
+          <div class="wallet-pro-identity">
+            <img class="wallet-logo" src="${logo(w.name)}" alt="${esc(w.name)} logo">
+            <h3>${esc(w.name)}</h3>
+          </div>
+          <div class="service-charge">
+            <small>Service Charge</small>
+            <strong>${money(w.total_fee)}</strong>
+          </div>
         </div>
-        ${w.description ? `<p>${esc(w.description)}</p>` : ""}
-        <div class="availability"><i></i><span>Service Available</span></div>
-        <div class="fee-grid"><div class="fee-box"><b>First Payment</b><span>${money(w.initial_amount)}</span><small>Pay at application start</small></div><div class="fee-box"><b>Remaining</b><span>${money(w.remaining_amount)}</span><small>After wallet ready</small></div></div>
-        <div class="chips">${(w.documents || []).map((d) => `<span class="chip">${esc(d.name)}</span>`).join("")}</div>
+
+        <div class="processing-card">
+          <span class="processing-icon">${clockIcon}</span>
+          <div>
+            <small>Estimated Processing Time</small>
+            <strong>${esc(w.processing_time || "Subject to verification")}</strong>
+            <span>Time may vary depending on document verification.</span>
+          </div>
+        </div>
+
+        ${w.description ? `<p class="wallet-description">${esc(w.description)}</p>` : ""}
+
+        <div class="service-status"><i>✓</i><span>Service Available</span></div>
+
+        <div class="fee-grid professional-fees">
+          <div class="fee-box">
+            <span class="fee-icon">${paymentIcon}</span>
+            <div><b>First Payment</b><strong>${money(w.initial_amount)}</strong><small>Pay at application start</small></div>
+          </div>
+          <div class="fee-box">
+            <span class="fee-icon">${paymentIcon}</span>
+            <div><b>Remaining Payment</b><strong>${money(w.remaining_amount)}</strong><small>Pay after wallet is ready</small></div>
+          </div>
+        </div>
+
+        <div class="requirements-head"><span>${documentIcon}</span><b>Required Details &amp; Documents</b></div>
+        <div class="chips document-chips">${(w.documents || []).map((d) => `<span class="chip"><i>${documentIcon}</i>${esc(d.name)}</span>`).join("")}</div>
+
         <button type="button" class="primary apply-wallet" data-id="${w.id}">Apply for ${esc(w.name)}</button>
       </article>`).join("");
     document.querySelectorAll(".apply-wallet").forEach((b) => b.addEventListener("click", () => openApplication(Number(b.dataset.id))));
