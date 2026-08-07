@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eaf4ff">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=17">
+  <link rel="stylesheet" href="/static/website/website.css?v=18">
 </head>
 <body>
   <div class="site-shell">
@@ -71,6 +71,18 @@
 
     <main>
       <section id="homeView" class="view">
+        <button type="button" class="referral-home-banner" data-view="referral" aria-label="Open referral rewards">
+          <span class="referral-home-copy">
+            <small>REFER &amp; EARN</small>
+            <strong>Share with Friends, Earn Rewards</strong>
+            <span>Earn ₹100 when your referred friend's first Business Wallet is completed.</span>
+            <b>Invite Friends →</b>
+          </span>
+          <span class="referral-home-art" aria-hidden="true">
+            <i class="referral-coin coin-one">₹</i><i class="referral-coin coin-two">₹</i>
+            <svg viewBox="0 0 120 100"><path d="M27 31h66a9 9 0 0 1 9 9v36a9 9 0 0 1-9 9H27a9 9 0 0 1-9-9V40a9 9 0 0 1 9-9Z"/><path d="M39 31v54M81 31v54"/><circle cx="60" cy="58" r="13"/><path d="M54 53h13M54 58h10M58 64l7-12"/></svg>
+          </span>
+        </button>
         <div class="hero">
           <div class="hero-copy">
             <span class="trust-pill">Trusted Business Wallet Services Across India</span>
@@ -176,6 +188,68 @@
         <div class="security-banner">
           <div><b>Your documents remain private</b><p>Never share OTP, UPI PIN, passwords or card PIN with anyone.</p></div>
           <button type="button" class="text-btn" data-view="support">Read Safety Guidelines →</button>
+        </div>
+      </section>
+
+      <section id="referralView" class="view hidden">
+        <div class="referral-page">
+          <div class="referral-page-top">
+            <button type="button" class="referral-back" data-view="home" aria-label="Back to home">‹</button>
+            <div><small>INDIA BUSINESS WALLETS</small><h2>Invite Rewards</h2></div>
+            <span class="referral-top-badge">₹100</span>
+          </div>
+
+          <div class="referral-reward-hero">
+            <div class="referral-reward-copy">
+              <p><strong>₹100</strong> Reward</p>
+              <h3>Invite a Friend. Earn After Success.</h3>
+              <span>Your reward unlocks only when your friend's first Business Wallet application is successfully completed.</span>
+              <b>₹100 per successful referral</b>
+            </div>
+            <div class="referral-ticket-art" aria-hidden="true">
+              <span class="reward-glow"></span>
+              <svg viewBox="0 0 150 120"><path d="M23 37h104a10 10 0 0 1 10 10v12c-8 1-13 7-13 15s5 14 13 15v12a10 10 0 0 1-10 10H23a10 10 0 0 1-10-10V89c8-1 13-7 13-15s-5-14-13-15V47a10 10 0 0 1 10-10Z"/><path d="M48 37v74M102 37v74"/><circle cx="75" cy="74" r="20"/><path d="M65 64h21M65 72h17M71 89l12-25"/></svg>
+            </div>
+          </div>
+
+          <button type="button" id="inviteNow" class="referral-invite-btn">Invite Now</button>
+
+          <div class="referral-stats-card">
+            <div class="referral-card-title"><span>✦</span><b>Invitation Rewards</b><span>🏆</span></div>
+            <div class="referral-stats-grid">
+              <div><strong id="refInviteCount">0</strong><span>Invite</span></div>
+              <div><strong id="refCompleteCount">0</strong><span>Complete</span></div>
+              <div><strong id="refAwardTotal">₹0</strong><span>Award</span></div>
+            </div>
+          </div>
+
+          <div class="referral-share-card">
+            <p class="referral-section-label">Your Referral Link</p>
+            <button type="button" id="referralLinkBox" class="referral-link-box" data-copy-value=""><span id="referralLinkText">Loading…</span><b>Copy</b></button>
+            <div class="referral-share-actions">
+              <button type="button" id="shareWhatsApp" class="ref-share whatsapp-share">WhatsApp</button>
+              <button type="button" id="shareTelegram" class="ref-share telegram-share">Telegram</button>
+              <button type="button" id="shareMore" class="ref-share more-share">Share</button>
+            </div>
+          </div>
+
+          <div class="referral-payout-card">
+            <div class="referral-payout-head"><div><small>AVAILABLE REWARD</small><strong id="refAvailableReward">₹0</strong></div><span id="refPayoutStatus">No payout pending</span></div>
+            <div class="referral-payout-mini"><span>Pending payout <b id="refPendingPayout">₹0</b></span><span>Paid <b id="refPaidTotal">₹0</b></span></div>
+            <label class="referral-upi-label">UPI ID for manual payout<input id="referralUpi" type="text" inputmode="email" autocomplete="off" placeholder="yourname@upi"></label>
+            <button type="button" id="requestReferralPayout" class="referral-payout-btn">Request UPI Payout</button>
+            <small>Admin will manually send your approved reward to this UPI ID and mark it Paid.</small>
+          </div>
+
+          <div class="referral-rule-card">
+            <b>Reward Rule</b>
+            <p>₹100 reward is credited only after the referred user's <strong>first</strong> Business Wallet application reaches <strong>Completed</strong>. Opening the link or submitting an incomplete application does not earn a reward. One customer can generate only one referral reward.</p>
+          </div>
+
+          <div class="referral-history-card">
+            <div class="referral-history-head"><b>My Referrals</b><button type="button" id="refreshReferrals">Refresh</button></div>
+            <div id="referralHistory"><div class="loading">Loading referrals…</div></div>
+          </div>
         </div>
       </section>
 
@@ -293,7 +367,7 @@
   "use strict";
   window.IBW_PHASE2_LOADED = true;
 
-  const state = { bootstrap: null, selectedWallet: null, activeFinalId: null };
+  const state = { bootstrap: null, selectedWallet: null, activeFinalId: null, referral: null };
   const $ = (id) => document.getElementById(id);
   const esc = (value) => { const d = document.createElement("div"); d.textContent = String(value ?? ""); return d.innerHTML; };
   const money = (value) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
@@ -337,6 +411,7 @@
     document.querySelectorAll("[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === name));
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (name === "applications") loadApplications();
+    if (name === "referral") loadReferrals();
   }
 
   async function api(path, payload = null, form = false) {
@@ -591,6 +666,98 @@
     catch (error) { errorBox.textContent = error.message; errorBox.classList.remove("hidden"); }
     finally { button.disabled = false; button.textContent = "Submit Final Payment"; }
   }
+
+  function referralShareText() {
+    return `India Business Wallets par Business Wallet apply karein. Mere referral link se join karein: ${state.referral?.invite_link || ""}`;
+  }
+
+  function renderReferralHistory(items) {
+    const target = $("referralHistory");
+    if (!target) return;
+    if (!items?.length) {
+      target.innerHTML = '<div class="referral-empty">Abhi koi referral application nahi hai. Apna link share karke start karein.</div>';
+      return;
+    }
+    target.innerHTML = items.map((item) => `
+      <div class="referral-history-row">
+        <div><b>${esc(item.wallet)}</b><small>${esc(item.application_id)}</small></div>
+        <div class="referral-history-reward"><strong>${money(item.reward_amount)}</strong><span class="referral-history-status ${item.status === "PAID" ? "paid" : item.status === "EARNED" ? "earned" : "pending"}">${esc(item.reward_status)}</span></div>
+      </div>`).join("");
+  }
+
+  async function loadReferrals() {
+    const history = $("referralHistory");
+    if (history) history.innerHTML = '<div class="loading">Loading referrals…</div>';
+    try {
+      const data = await api("/website/api/referrals");
+      state.referral = data;
+      $("refInviteCount").textContent = data.invites || 0;
+      $("refCompleteCount").textContent = data.completed || 0;
+      $("refAwardTotal").textContent = money(data.earned_total || 0);
+      $("refAvailableReward").textContent = money(data.available_reward || 0);
+      $("refPendingPayout").textContent = money(data.pending_payout || 0);
+      $("refPaidTotal").textContent = money(data.paid_total || 0);
+      $("refPayoutStatus").textContent = data.pending_payout ? "Payout request pending" : "No payout pending";
+      $("referralLinkText").textContent = data.invite_link;
+      $("referralLinkBox").dataset.copyValue = data.invite_link;
+      const payoutButton = $("requestReferralPayout");
+      payoutButton.disabled = !data.available_reward || !!data.pending_payout;
+      payoutButton.textContent = data.pending_payout ? "Payout Request Pending" : "Request UPI Payout";
+      renderReferralHistory(data.referrals || []);
+    } catch (error) {
+      if (history) history.innerHTML = `<div class="referral-empty">${esc(error.message)}</div>`;
+      toast(error.message);
+    }
+  }
+
+  async function shareReferralGeneric() {
+    if (!state.referral?.invite_link) await loadReferrals();
+    const url = state.referral?.invite_link || "";
+    if (!url) return;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "India Business Wallets", text: "Business Wallet ke liye mera referral link use karein.", url });
+        return;
+      } catch (error) {
+        if (error?.name === "AbortError") return;
+      }
+    }
+    await copyText(url, "Referral link copied ✅");
+  }
+
+  async function requestReferralPayout() {
+    const button = $("requestReferralPayout");
+    const upi = $("referralUpi").value.trim();
+    button.disabled = true;
+    const oldText = button.textContent;
+    button.textContent = "Submitting…";
+    try {
+      const data = await api("/website/api/referrals/request-payout", { upi_id: upi });
+      toast(`Payout request submitted for ${money(data.amount)} ✅`);
+      $("referralUpi").value = "";
+      await loadReferrals();
+    } catch (error) {
+      toast(error.message);
+      button.disabled = false;
+      button.textContent = oldText;
+    }
+  }
+
+  $("inviteNow")?.addEventListener("click", shareReferralGeneric);
+  $("shareMore")?.addEventListener("click", shareReferralGeneric);
+  $("shareWhatsApp")?.addEventListener("click", async () => {
+    if (!state.referral?.invite_link) await loadReferrals();
+    const text = encodeURIComponent(referralShareText());
+    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener");
+  });
+  $("shareTelegram")?.addEventListener("click", async () => {
+    if (!state.referral?.invite_link) await loadReferrals();
+    const url = encodeURIComponent(state.referral?.invite_link || "");
+    const text = encodeURIComponent("India Business Wallets referral");
+    window.open(`https://t.me/share/url?url=${url}&text=${text}`, "_blank", "noopener");
+  });
+  $("requestReferralPayout")?.addEventListener("click", requestReferralPayout);
+  $("refreshReferrals")?.addEventListener("click", loadReferrals);
 
   const openDrawer = () => {
     $("infoDrawer")?.classList.add("open");
