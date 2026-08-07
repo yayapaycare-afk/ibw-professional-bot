@@ -578,6 +578,9 @@ def register_website_routes(app: FastAPI) -> None:
                 raise HTTPException(400, "No completed referral reward is available for payout")
 
             amount = sum(item.reward_amount for item in eligible)
+            if amount < 100:
+                raise HTTPException(400, "Minimum withdrawal amount is ₹100")
+
             payout = ReferralPayout(
                 referrer_profile_id=profile.id,
                 upi_id=upi_id,
