@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eaf4ff">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=12">
+  <link rel="stylesheet" href="/static/website/website.css?v=14">
 </head>
 <body>
   <div class="site-shell">
@@ -74,8 +74,80 @@
         <div class="hero">
           <div class="hero-copy">
             <span class="trust-pill">Trusted Business Wallet Services Across India</span>
-            <h1>Open Your Business Wallet Online</h1>
-            <p>Choose your wallet, submit documents securely, complete payment and track every update using your Application ID.</p>
+            <div class="hero-info-slider" id="heroInfoSlider" aria-label="Business wallet information">
+              <div class="hero-info-track" id="heroInfoTrack">
+                <article class="hero-info-slide hero-slide-benefits active" aria-roledescription="slide">
+                  <div class="hero-slide-layout">
+                    <div class="hero-slide-content">
+                      <span class="hero-slide-kicker">BUSINESS WALLET KE FAYDE</span>
+                      <h1>Receive More Business Payments with Confidence</h1>
+                      <p>Business Wallet open karke aap zyada business transactions receive aur manage kar sakte hain. Direct savings account mein baar-baar business payments receive karne se bank review ya freeze hone ka risk badh sakta hai. Business Wallet ke through payments receive karne se personal savings account par transaction load kam rehta hai aur business payments zyada organised tareeke se manage hote hain.</p>
+                      <div class="hero-slide-points">
+                        <span>More Business Transactions</span>
+                        <span>Organised Payment Records</span>
+                        <span>Lower Savings Account Load</span>
+                      </div>
+                      <strong class="hero-slide-line">More Transactions • Better Management • Safer Business Payments</strong>
+                    </div>
+                    <div class="hero-slide-visual benefit-visual" aria-hidden="true">
+                      <div class="visual-orbit visual-orbit-one"></div>
+                      <div class="visual-orbit visual-orbit-two"></div>
+                      <div class="visual-center-icon">
+                        <svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 9h5v6h-5a3 3 0 0 1 0-6Z"/><circle cx="16.5" cy="12" r=".7"/></svg>
+                      </div>
+                      <span class="visual-pill visual-pill-a">Business Payments</span>
+                      <span class="visual-pill visual-pill-b">Better Records</span>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="hero-info-slide hero-slide-wallets" aria-roledescription="slide">
+                  <div class="hero-slide-layout">
+                    <div class="hero-slide-content">
+                      <span class="hero-slide-kicker">RECOMMENDED BUSINESS WALLETS</span>
+                      <h1>Choose a Business Wallet Built for Merchant Payments</h1>
+                      <p>Paytm Business, BharatPe Business aur Google Pay Business jaise merchant wallets business collections ke liye strong options hain. Inke through payments receive karne se repeated business transactions ko personal savings account se alag rakhna easier hota hai, aur cyber-report-related account issues ka exposure direct savings-account collections ke comparison mein kam ho sakta hai.</p>
+                      <div class="hero-slide-points">
+                        <span>Paytm Business</span>
+                        <span>BharatPe Business</span>
+                        <span>Google Pay Business</span>
+                      </div>
+                      <strong class="hero-slide-line">Handle More Customer Payments • Keep Business Collections Separate • Apply Today</strong>
+                    </div>
+                    <div class="hero-slide-visual wallet-visual" aria-label="Recommended business wallet logos">
+                      <div class="wallet-logo-stack">
+                        <div class="hero-wallet-logo"><img src="/static/miniapp/logos/paytm-business.png" alt="Paytm Business"></div>
+                        <div class="hero-wallet-logo"><img src="/static/miniapp/logos/bharatpe-business.png" alt="BharatPe Business"></div>
+                        <div class="hero-wallet-logo"><img src="/static/miniapp/logos/googlepay-business.png" alt="Google Pay Business"></div>
+                      </div>
+                      <span class="visual-caption">Recommended for business collections</span>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="hero-info-slide hero-slide-trust" aria-roledescription="slide">
+                  <div class="hero-slide-layout">
+                    <div class="hero-slide-content">
+                      <span class="hero-slide-kicker">WHY INDIA BUSINESS WALLETS?</span>
+                      <h1>Trusted Guidance for Your Business Wallet Journey</h1>
+                      <p>India Business Wallets has already assisted 5,000+ customers with business wallet applications. Get a simple online process, clear application tracking, secure document submission and dedicated customer support whenever you need help with your application.</p>
+                      <div class="hero-slide-points">
+                        <span>5,000+ Customers Assisted</span>
+                        <span>Secure Online Process</span>
+                        <span>Dedicated Customer Support</span>
+                      </div>
+                      <strong class="hero-slide-line">Trusted Service • Clear Process • Support You Can Reach</strong>
+                    </div>
+                    <div class="hero-slide-visual trust-visual" aria-hidden="true">
+                      <div class="trust-logo-shell"><img src="/static/miniapp/logos/ibw-logo.png" alt=""></div>
+                      <div class="trust-metric"><strong>5,000+</strong><span>Customers Assisted</span></div>
+                      <div class="trust-mini-row"><span>Secure</span><span>Trackable</span><span>Supported</span></div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+              <div class="hero-slider-dots" id="heroSliderDots" aria-label="Banner slides"></div>
+            </div>
             <div class="hero-actions">
               <button type="button" class="primary" data-view="services">Apply Now</button>
               <button type="button" class="secondary" data-view="track">Track Application</button>
@@ -555,6 +627,58 @@
   $("trackButton")?.addEventListener("click", trackApplication);
   $("applicationId")?.addEventListener("keydown", (e) => { if (e.key === "Enter") trackApplication(); });
   document.addEventListener("click", (event) => { const target = event.target.closest("[data-copy-value]"); if (target) copyText(target.dataset.copyValue, target.dataset.copyMessage || "Copied ✅"); });
+
+  // Hero information banner slider. Add more .hero-info-slide elements later and
+  // the carousel will automatically activate without affecting the rest of the site.
+  (() => {
+    const slider = $("heroInfoSlider");
+    const track = $("heroInfoTrack");
+    const dotsWrap = $("heroSliderDots");
+    if (!slider || !track || !dotsWrap) return;
+    const slides = Array.from(track.querySelectorAll(".hero-info-slide"));
+    if (!slides.length) return;
+    let current = 0;
+    let timer = null;
+    let touchStartX = 0;
+
+    const dots = slides.map((_, index) => {
+      const dot = document.createElement("button");
+      dot.type = "button";
+      dot.className = "hero-slider-dot";
+      dot.setAttribute("aria-label", `Show banner ${index + 1}`);
+      dot.addEventListener("click", () => goTo(index, true));
+      dotsWrap.appendChild(dot);
+      return dot;
+    });
+
+    function goTo(index, restart = false) {
+      current = (index + slides.length) % slides.length;
+      track.style.transform = `translateX(-${current * 100}%)`;
+      slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
+      dots.forEach((dot, i) => dot.classList.toggle("active", i === current));
+      if (restart) startAuto();
+    }
+
+    function startAuto() {
+      if (timer) window.clearInterval(timer);
+      if (slides.length < 2) return;
+      timer = window.setInterval(() => goTo(current + 1), 5200);
+    }
+
+    if (slides.length < 2) dotsWrap.classList.add("single");
+    slider.addEventListener("mouseenter", () => timer && window.clearInterval(timer));
+    slider.addEventListener("mouseleave", startAuto);
+    slider.addEventListener("touchstart", (event) => { touchStartX = event.touches[0]?.clientX || 0; }, { passive: true });
+    slider.addEventListener("touchend", (event) => {
+      if (slides.length < 2) return;
+      const endX = event.changedTouches[0]?.clientX || touchStartX;
+      const delta = endX - touchStartX;
+      if (Math.abs(delta) > 42) goTo(current + (delta < 0 ? 1 : -1), true);
+    }, { passive: true });
+
+    goTo(0);
+    startAuto();
+  })();
 
   showView("home");
   loadBootstrap();
