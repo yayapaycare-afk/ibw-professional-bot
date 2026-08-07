@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eaf4ff">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=28">
+  <link rel="stylesheet" href="/static/website/website.css?v=29">
 
   <style id="ibw-v28-critical">
     /* v28: one-file critical visual fix */
@@ -226,6 +226,304 @@
         width:23px !important;
       }
     }
+
+    /* ---------- v29: compact two-banner homepage slider ---------- */
+    .home-promo-slider{
+      position:relative;
+      width:100%;
+      height:118px;
+      margin:0 0 18px;
+      overflow:hidden;
+      border-radius:22px;
+    }
+
+    .home-promo-slide{
+      position:absolute !important;
+      inset:0 !important;
+      width:100% !important;
+      height:118px !important;
+      min-height:118px !important;
+      margin:0 !important;
+      opacity:0;
+      visibility:hidden;
+      pointer-events:none;
+      transform:translateX(18px);
+      transition:opacity .42s ease,transform .42s ease,visibility .42s;
+      will-change:opacity,transform;
+    }
+
+    .home-promo-slide.is-active{
+      opacity:1;
+      visibility:visible;
+      pointer-events:auto;
+      transform:translateX(0);
+    }
+
+    .home-promo-dots{
+      position:absolute;
+      left:50%;
+      bottom:7px;
+      z-index:8;
+      display:flex;
+      gap:5px;
+      transform:translateX(-50%);
+      pointer-events:none;
+    }
+
+    .home-promo-dots span{
+      display:block;
+      width:5px;
+      height:5px;
+      border-radius:999px;
+      background:rgba(255,255,255,.48);
+      transition:width .25s ease,background .25s ease;
+    }
+
+    .home-promo-dots span.is-active{
+      width:15px;
+      background:rgba(255,255,255,.92);
+    }
+
+    /* The original referral banner keeps its current design and exact height. */
+    .home-promo-slider .referral-home-banner{
+      border-radius:22px !important;
+    }
+
+    /* New wallet/apply banner — same dimensions, light-blue premium styling. */
+    .wallet-apply-banner{
+      border:1px solid rgba(47,128,237,.13);
+      border-radius:22px;
+      overflow:hidden;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 190px;
+      padding:0;
+      text-align:left;
+      cursor:pointer;
+      color:#17324d;
+      background:
+        radial-gradient(circle at 88% 18%,rgba(255,255,255,.88),transparent 24%),
+        radial-gradient(circle at 64% 110%,rgba(127,190,255,.25),transparent 38%),
+        linear-gradient(118deg,#eef8ff 0%,#dceeff 47%,#dfe7ff 73%,#eee8ff 100%);
+      box-shadow:0 14px 30px rgba(48,113,170,.13);
+      isolation:isolate;
+    }
+
+    .wallet-apply-banner:before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(103deg,transparent 0 52%,rgba(255,255,255,.32) 53% 54%,transparent 55%),
+        radial-gradient(circle at 82% 49%,rgba(75,157,239,.10),transparent 28%);
+      z-index:-1;
+    }
+
+    .wallet-apply-copy{
+      padding:17px 20px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      position:relative;
+      z-index:4;
+      min-width:0;
+    }
+
+    .wallet-apply-copy small{
+      font-size:9px;
+      letter-spacing:.13em;
+      font-weight:900;
+      color:#2f80ed;
+    }
+
+    .wallet-apply-copy strong{
+      max-width:520px;
+      margin-top:4px;
+      font-size:22px;
+      line-height:1.04;
+      font-weight:900;
+      color:#17324d;
+    }
+
+    .wallet-apply-copy>span{
+      max-width:520px;
+      margin-top:6px;
+      font-size:11.5px;
+      line-height:1.35;
+      color:#58738d;
+    }
+
+    .wallet-apply-copy b{
+      display:inline-flex;
+      width:max-content;
+      margin-top:8px;
+      padding:5px 10px;
+      border-radius:999px;
+      background:#2f80ed;
+      color:#fff;
+      font-size:10.5px;
+      font-weight:900;
+      box-shadow:0 5px 12px rgba(47,128,237,.16);
+    }
+
+    .wallet-apply-art{
+      position:relative;
+      min-width:0;
+      display:block;
+    }
+
+    .wallet-logo-bubble{
+      position:absolute;
+      z-index:4;
+      display:grid;
+      place-items:center;
+      width:62px;
+      height:62px;
+      border-radius:19px;
+      padding:7px;
+      background:rgba(255,255,255,.97);
+      border:1px solid rgba(47,128,237,.13);
+      box-shadow:0 9px 20px rgba(43,100,153,.13);
+    }
+
+    .wallet-logo-bubble img{
+      display:block;
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      border-radius:12px;
+    }
+
+    .wallet-logo-paytm{
+      right:85px;
+      top:16px;
+      transform:rotate(-6deg);
+    }
+
+    .wallet-logo-gpay{
+      right:25px;
+      top:30px;
+      transform:rotate(6deg);
+    }
+
+    .wallet-logo-bharat{
+      right:63px;
+      bottom:8px;
+      width:55px;
+      height:55px;
+      transform:rotate(2deg);
+    }
+
+    .wallet-apply-ring{
+      position:absolute;
+      z-index:1;
+      border:1px solid rgba(47,128,237,.18);
+      border-radius:50%;
+    }
+
+    .ring-one{
+      width:145px;
+      height:145px;
+      right:9px;
+      top:-18px;
+    }
+
+    .ring-two{
+      width:95px;
+      height:95px;
+      right:36px;
+      top:12px;
+      border-color:rgba(111,97,224,.15);
+    }
+
+    @media(max-width:640px){
+      .home-promo-slider{
+        height:104px;
+        border-radius:18px;
+      }
+
+      .home-promo-slide{
+        height:104px !important;
+        min-height:104px !important;
+      }
+
+      .home-promo-slider .referral-home-banner,
+      .wallet-apply-banner{
+        border-radius:18px !important;
+      }
+
+      .wallet-apply-banner{
+        grid-template-columns:minmax(0,1fr) 132px;
+      }
+
+      .wallet-apply-copy{
+        padding:13px 14px;
+      }
+
+      .wallet-apply-copy small{
+        font-size:7.5px;
+      }
+
+      .wallet-apply-copy strong{
+        margin-top:3px;
+        font-size:16px;
+        line-height:1.05;
+      }
+
+      .wallet-apply-copy>span{
+        margin-top:4px;
+        font-size:9px;
+        line-height:1.25;
+      }
+
+      .wallet-apply-copy b{
+        margin-top:5px;
+        padding:4px 8px;
+        font-size:9px;
+      }
+
+      .wallet-logo-bubble{
+        width:46px;
+        height:46px;
+        border-radius:14px;
+        padding:5px;
+      }
+
+      .wallet-logo-paytm{
+        right:65px;
+        top:12px;
+      }
+
+      .wallet-logo-gpay{
+        right:15px;
+        top:23px;
+      }
+
+      .wallet-logo-bharat{
+        right:44px;
+        bottom:7px;
+        width:42px;
+        height:42px;
+      }
+
+      .ring-one{
+        width:108px;
+        height:108px;
+        right:4px;
+        top:-3px;
+      }
+
+      .ring-two{
+        width:72px;
+        height:72px;
+        right:28px;
+        top:16px;
+      }
+
+      .home-promo-dots{
+        bottom:5px;
+      }
+    }
+
   </style>
 
 </head>
@@ -291,35 +589,57 @@
 
     <main>
       <section id="homeView" class="view">
-        <button type="button" class="referral-home-banner" data-view="referral" aria-label="Open referral rewards">
-          <span class="referral-home-copy">
-            <small>REFER &amp; EARN</small>
-            <strong>Share with Friends, Earn Rewards</strong>
-            <span>Earn ₹100 when your referred friend's first Business Wallet is completed.</span>
-            <b>Invite Friends →</b>
-          </span>
-          <span class="referral-home-art" aria-hidden="true">
-            <span class="referral-reward-chip">₹1000+</span>
-            <i class="referral-coin coin-one">₹</i><i class="referral-coin coin-two">₹</i>
-            <svg class="referral-visual" viewBox="0 0 180 112" role="presentation">
-              <g class="gift-box">
-                <path d="M64 64h82v34H64z"/>
-                <path d="M58 55h94v18H58z"/>
-                <path d="M101 55v43"/>
-                <path d="M77 55c-12-2-18-11-13-18 6-8 21 1 37 18M125 55c12-2 18-11 13-18-6-8-21 1-37 18"/>
-              </g>
-              <g class="phone">
-                <rect x="74" y="9" width="46" height="67" rx="9"/>
-                <path d="M89 16h16"/>
-                <circle cx="90" cy="45" r="8"/>
-                <circle cx="106" cy="45" r="8"/>
-                <path d="M79 60c5-9 14-13 23-13s18 4 23 13"/>
-              </g>
-              <path class="ribbon" d="M136 38c19 4 24 13 29 27-12-6-20-8-33-5 11-7 14-14 4-22Z"/>
-              <path class="ribbon ribbon-two" d="M142 61c16 8 22 17 20 30-9-10-17-14-30-16 9-2 13-7 10-14Z"/>
-            </svg>
-          </span>
-        </button>
+        <div class="home-promo-slider" id="homePromoSlider" aria-label="Featured offers">
+          <button type="button" class="home-promo-slide referral-home-banner is-active" data-view="referral" aria-label="Open referral rewards" aria-hidden="false">
+            <span class="referral-home-copy">
+              <small>REFER &amp; EARN</small>
+              <strong>Share with Friends, Earn Rewards</strong>
+              <span>Earn ₹100 when your referred friend's first Business Wallet is completed.</span>
+              <b>Invite Friends →</b>
+            </span>
+            <span class="referral-home-art" aria-hidden="true">
+              <span class="referral-reward-chip">₹1000+</span>
+              <i class="referral-coin coin-one">₹</i><i class="referral-coin coin-two">₹</i>
+              <svg class="referral-visual" viewBox="0 0 180 112" role="presentation">
+                <g class="gift-box">
+                  <path d="M64 64h82v34H64z"/>
+                  <path d="M58 55h94v18H58z"/>
+                  <path d="M101 55v43"/>
+                  <path d="M77 55c-12-2-18-11-13-18 6-8 21 1 37 18M125 55c12-2 18-11 13-18-6-8-21 1-37 18"/>
+                </g>
+                <g class="phone">
+                  <rect x="74" y="9" width="46" height="67" rx="9"/>
+                  <path d="M89 16h16"/>
+                  <circle cx="90" cy="45" r="8"/>
+                  <circle cx="106" cy="45" r="8"/>
+                  <path d="M79 60c5-9 14-13 23-13s18 4 23 13"/>
+                </g>
+                <path class="ribbon" d="M136 38c19 4 24 13 29 27-12-6-20-8-33-5 11-7 14-14 4-22Z"/>
+                <path class="ribbon ribbon-two" d="M142 61c16 8 22 17 20 30-9-10-17-14-30-16 9-2 13-7 10-14Z"/>
+              </svg>
+            </span>
+          </button>
+
+          <button type="button" class="home-promo-slide wallet-apply-banner" data-view="services" aria-label="Apply for a Business Wallet" aria-hidden="true">
+            <span class="wallet-apply-copy">
+              <small>BUSINESS WALLET SERVICES</small>
+              <strong>Choose a Business Wallet That Fits Your Business</strong>
+              <span>Paytm Business • GPay Business • BharatPe Business</span>
+              <b>Apply Now →</b>
+            </span>
+            <span class="wallet-apply-art" aria-hidden="true">
+              <span class="wallet-logo-bubble wallet-logo-paytm"><img src="/static/miniapp/logos/paytm-business.png" alt=""></span>
+              <span class="wallet-logo-bubble wallet-logo-gpay"><img src="/static/miniapp/logos/googlepay-business.png" alt=""></span>
+              <span class="wallet-logo-bubble wallet-logo-bharat"><img src="/static/miniapp/logos/bharatpe-business.png" alt=""></span>
+              <span class="wallet-apply-ring ring-one"></span>
+              <span class="wallet-apply-ring ring-two"></span>
+            </span>
+          </button>
+
+          <div class="home-promo-dots" aria-hidden="true">
+            <span class="is-active"></span><span></span>
+          </div>
+        </div>
         <div class="hero">
           <div class="hero-copy">
             <span class="trust-pill">Trusted Business Wallet Services Across India</span>
@@ -1129,6 +1449,38 @@
   document.addEventListener("click", (event) => { const target = event.target.closest("[data-copy-value]"); if (target) copyText(target.dataset.copyValue, target.dataset.copyMessage || "Copied ✅"); });
 
 
+
+
+  /* v29 homepage promotional banners: automatic 3-second rotation. */
+  const homePromoSlides = Array.from(document.querySelectorAll("#homePromoSlider .home-promo-slide"));
+  const homePromoDots = Array.from(document.querySelectorAll("#homePromoSlider .home-promo-dots span"));
+  let homePromoIndex = 0;
+  let homePromoTimer = null;
+
+  function setHomePromoSlide(nextIndex) {
+    if (homePromoSlides.length < 2) return;
+    homePromoIndex = (nextIndex + homePromoSlides.length) % homePromoSlides.length;
+    homePromoSlides.forEach((slide, index) => {
+      const selected = index === homePromoIndex;
+      slide.classList.toggle("is-active", selected);
+      slide.setAttribute("aria-hidden", selected ? "false" : "true");
+    });
+    homePromoDots.forEach((dot, index) => dot.classList.toggle("is-active", index === homePromoIndex));
+  }
+
+  function startHomePromoSlider() {
+    window.clearInterval(homePromoTimer);
+    if (homePromoSlides.length < 2 || document.hidden) return;
+    homePromoTimer = window.setInterval(() => setHomePromoSlide(homePromoIndex + 1), 3000);
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) window.clearInterval(homePromoTimer);
+    else startHomePromoSlider();
+  });
+
+  setHomePromoSlide(0);
+  startHomePromoSlider();
 
   showView("home");
   loadBootstrap();
