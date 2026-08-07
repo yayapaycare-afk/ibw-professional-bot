@@ -1252,3 +1252,134 @@ body{
     font-size:19px;
   }
 }
+
+
+/* Referral v25 — compact, light withdrawal card */
+.referral-balance-card{
+  padding:14px 15px 15px;
+  border-radius:18px;
+  background:rgba(255,255,255,.93);
+  border:1px solid rgba(255,255,255,.88);
+  box-shadow:0 8px 22px rgba(126,76,90,.055);
+}
+.referral-balance-card .referral-payout-head{
+  align-items:center;
+}
+.referral-balance-card .referral-payout-head small{
+  font-size:8px;
+  letter-spacing:.09em;
+  color:#917984;
+}
+.referral-balance-card .referral-payout-head strong{
+  margin-top:2px;
+  font-size:27px;
+  line-height:1;
+  color:#e43470;
+}
+.withdrawal-status{
+  max-width:150px;
+  padding:6px 9px!important;
+  border-radius:999px!important;
+  background:#fff4f7!important;
+  color:#a56b7f!important;
+  font-size:9px!important;
+  font-weight:750;
+  text-align:center;
+  white-space:nowrap;
+}
+.withdrawal-status.ready{
+  background:#eef8f2!important;
+  color:#31805a!important;
+}
+.withdrawal-status.pending{
+  background:#fff5e7!important;
+  color:#9b6b26!important;
+}
+.withdrawal-status.paid{
+  background:#edf8f2!important;
+  color:#2f8059!important;
+}
+.referral-balance-card .referral-payout-mini{
+  margin:9px 0 10px;
+  gap:7px;
+}
+.referral-balance-card .referral-payout-mini span{
+  padding:6px 9px;
+  border-radius:9px;
+  background:#faf6f8;
+  font-size:10px;
+  color:#7c6871;
+}
+.withdrawal-minimum-note{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  width:max-content;
+  max-width:100%;
+  margin:0 0 9px;
+  padding:6px 9px;
+  border-radius:9px;
+  background:#fff8f1;
+  color:#8a6956;
+  font-size:9px;
+}
+.withdrawal-minimum-note span{
+  width:17px;
+  height:17px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#f4c86b;
+  color:#76520f;
+  font-weight:900;
+}
+.withdrawal-minimum-note b{
+  font-weight:750;
+}
+.referral-balance-card .referral-upi-label{
+  gap:5px;
+  font-size:10px;
+  color:#69555f;
+}
+.referral-balance-card .referral-upi-label input{
+  height:40px;
+  padding:9px 11px!important;
+  border:1px solid #eadde2!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  font-size:13px;
+  outline:none;
+}
+.referral-balance-card .referral-upi-label input:focus{
+  border-color:#efabc1!important;
+  box-shadow:0 0 0 3px rgba(234,84,131,.08);
+}
+.referral-balance-card .referral-payout-btn{
+  min-height:43px;
+  margin-top:8px;
+  padding:10px 12px;
+  border-radius:11px;
+  background:linear-gradient(135deg,#f58eae,#ef78a0);
+  box-shadow:none;
+  font-size:13px;
+  font-weight:800;
+}
+.referral-balance-card .referral-payout-btn.is-unavailable{
+  opacity:.62;
+  background:linear-gradient(135deg,#f2afc1,#eca6bc);
+}
+@media(max-width:520px){
+  .referral-balance-card{
+    padding:13px 14px 14px;
+  }
+  .referral-balance-card .referral-payout-head strong{
+    font-size:25px;
+  }
+  .withdrawal-status{
+    font-size:8.5px!important;
+  }
+  .referral-balance-card .referral-payout-btn{
+    min-height:42px;
+    font-size:12.5px;
+  }
+}
