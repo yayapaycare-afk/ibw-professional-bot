@@ -7,7 +7,7 @@ import os
 import re
 import secrets
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
@@ -114,6 +114,33 @@ def _mobile(value: str) -> str:
         raise HTTPException(400, "Enter a valid 10-digit mobile number")
     return normalized
 
+
+
+
+def _masked_mobile(value: str | None) -> str:
+    digits = re.sub(r"\D", "", value or "")
+    if len(digits) >= 10:
+        digits = digits[-10:]
+        return f"{digits[:2]}******{digits[-2:]}"
+    if len(digits) >= 4:
+        return f"{digits[:2]}{'*' * max(len(digits) - 4, 2)}{digits[-2:]}"
+    return "Referred Customer"
+
+
+def _referral_application_label(status: str | None) -> str:
+    current = (status or "").upper()
+    if current == "COMPLETED":
+        return "Completed"
+    if current == "REJECTED":
+        return "Rejected"
+    if current in {
+        "PAYMENT_VERIFIED",
+        "PROCESSING",
+        "WALLET_READY",
+        "FINAL_PAYMENT_UNDER_VERIFICATION",
+    }:
+        return "Processing"
+    return "Application Submitted"
 
 
 def _clean_referral_code(value: str | None) -> str:
@@ -434,10 +461,15 @@ def register_website_routes(app: FastAPI) -> None:
             )).all()
 
             referrals = []
+            details = []
             available_reward = 0
             earned_total = 0
             completed_count = 0
+            now_utc = datetime.now(timezone.utc)
+
             for referral, application, wallet, payout in rows:
+                # Lifetime accounting: never reduced when an old completed row
+                # disappears from the customer-facing View Details screen.
                 if referral.status in {"EARNED", "PAID"}:
                     completed_count += 1
                     earned_total += referral.reward_amount
@@ -462,6 +494,34 @@ def register_website_routes(app: FastAPI) -> None:
                     "created_at": referral.created_at.isoformat(),
                 })
 
+                # Referral rows are created only after the referred customer's
+                # first website application has been successfully submitted.
+                if not application or not application.application_id:
+                    continue
+
+                # Keep completed referrals visible for 7 days for confirmation,
+                # then hide only from this short details list. Database/reward
+                # history and lifetime totals remain untouched.
+                if referral.status in {"EARNED", "PAID"} and referral.completed_at:
+                    completed_at = referral.completed_at
+                    if completed_at.tzinfo is None:
+                        completed_at = completed_at.replace(tzinfo=timezone.utc)
+                    if now_utc >= completed_at + timedelta(days=7):
+                        continue
+
+                details.append({
+                    "mobile": _masked_mobile(referral.referred_mobile),
+                    "application_id": referral.application_code,
+                    "wallet": wallet.name if wallet else "Business Wallet",
+                    "application_status": application.status,
+                    "application_status_label": _referral_application_label(application.status),
+                    "referral_status": referral.status,
+                    "reward_amount": referral.reward_amount,
+                    "reward_status": reward_status,
+                    "completed_at": referral.completed_at.isoformat() if referral.completed_at else None,
+                    "created_at": referral.created_at.isoformat(),
+                })
+
             pending_payout = await session.scalar(
                 select(ReferralPayout.amount).where(
                     ReferralPayout.referrer_profile_id == profile.id,
@@ -482,6 +542,7 @@ def register_website_routes(app: FastAPI) -> None:
             "pending_payout": int(pending_payout),
             "paid_total": paid_total,
             "referrals": referrals,
+            "details": details,
         }
 
     @app.post("/website/api/referrals/request-payout")
