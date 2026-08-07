@@ -1,9 +1,141 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}IBW Admin{% endblock %}</title><link rel="manifest" href="/static/manifest.webmanifest"><meta name="theme-color" content="#14213d"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="IBW Admin"><link rel="apple-touch-icon" href="/static/icons/icon-192.png"><style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#152033}nav{position:sticky;top:0;z-index:10;background:#14213d;color:#fff;padding:14px 18px;display:flex;align-items:center;gap:18px;overflow-x:auto}nav b,nav a{white-space:nowrap}nav a{color:#fff;text-decoration:none}.wrap{max-width:1180px;margin:0 auto;padding:22px 14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 18px #18243b12}.stat{font-size:32px;font-weight:700;margin:0}.muted{color:#6c7890}.success{background:#e9f8ef;color:#19733d;padding:10px;border-radius:9px}.warning{background:#fff5df;color:#8a5b00;padding:10px;border-radius:9px}input,textarea,select{width:100%;padding:11px;margin:6px 0 12px;border:1px solid #cad3e1;border-radius:9px;background:#fff}button,.btn{display:inline-block;border:0;border-radius:9px;padding:10px 14px;background:#1769e0;color:#fff;text-decoration:none;cursor:pointer}.danger{background:#c83232}.secondary{background:#64748b}.green{background:#16834b}table{width:100%;min-width:700px;border-collapse:collapse}th,td{text-align:left;padding:11px;border-bottom:1px solid #e6eaf0;vertical-align:top}.table-wrap{overflow-x:auto}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#edf3ff;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}label.check{display:flex;gap:8px;align-items:center;margin:8px 0}label.check input{width:auto;margin:0}@media(max-width:600px){.wrap{padding:14px 9px}.card{padding:14px;border-radius:12px}h1{font-size:24px}}
-.danger-zone{border:1px solid #fecaca;background:#fff7f7}.danger{background:#b91c1c!important}.warning{padding:10px;border-radius:8px;background:#fff7d6;color:#7c5700}</style></head><body><nav><b>🏦 IBW Admin</b><a href="/admin">Dashboard</a><a href="/admin/wallets">Wallets</a><a href="/admin/settings">Settings</a><a href="/logout">Logout</a></nav><main class="wrap">{% block content %}{% endblock %}</main><script>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{% block title %}IBW Admin{% endblock %}</title>
+<link rel="manifest" href="/static/manifest.webmanifest">
+<meta name="theme-color" content="#14213d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="IBW Admin">
+<link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+<style>
+:root{--nav:#14213d;--bg:#f3f6fb;--card:#fff;--text:#152033;--muted:#6c7890;--line:#e6eaf0;--blue:#1769e0;--blue-soft:#edf3ff;--red:#b91c1c;--green:#16834b;--shadow:0 4px 18px rgba(24,36,59,.07)}
+*{box-sizing:border-box}
+html{max-width:100%;overflow-x:hidden}
+body{margin:0;min-width:0;max-width:100%;overflow-x:hidden;font-family:Arial,sans-serif;background:var(--bg);color:var(--text);-webkit-text-size-adjust:100%}
+button,input,textarea,select{font:inherit}
+a{-webkit-tap-highlight-color:transparent}
+.admin-nav{position:sticky;top:0;z-index:100;width:100%;background:var(--nav);color:#fff;box-shadow:0 2px 14px rgba(8,19,42,.16)}
+.admin-nav-inner{max-width:1180px;min-height:58px;margin:0 auto;padding:0 14px;display:flex;align-items:center;gap:18px}
+.admin-brand{display:flex;align-items:center;gap:7px;flex:0 0 auto;color:#fff;text-decoration:none;font-weight:800;white-space:nowrap}
+.admin-nav-links{display:flex;align-items:center;gap:6px;margin-left:auto}
+.admin-nav-links a{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 11px;border-radius:9px;color:#fff;text-decoration:none;white-space:nowrap;font-size:14px}
+.admin-nav-links a:hover,.admin-nav-links a:focus{background:rgba(255,255,255,.10)}
+.admin-nav-links .logout-link{color:#ffdada}
+.admin-nav-toggle{display:none;width:38px;height:38px;margin-left:auto;padding:0;border:0;border-radius:9px;background:rgba(255,255,255,.08);color:#fff;cursor:pointer}
+.admin-nav-toggle span{display:block;width:20px;height:2px;margin:4px auto;border-radius:99px;background:#fff}
+.wrap{width:min(100%,1180px);margin:0 auto;padding:22px 14px 34px}
+h1{margin:0 0 8px;font-size:30px;line-height:1.15}
+h2{margin:0 0 14px;font-size:21px;line-height:1.25}
+p{line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.card{min-width:0;background:var(--card);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow)}
+.stat{margin:0;font-size:32px;line-height:1.05;font-weight:800}
+.muted{color:var(--muted)}
+.success{background:#e9f8ef;color:#19733d;padding:10px;border-radius:9px}
+.warning{padding:10px;border-radius:8px;background:#fff7d6;color:#7c5700}
+.danger-zone{border:1px solid #fecaca;background:#fff7f7}
+input,textarea,select{display:block;width:100%;max-width:100%;min-height:44px;padding:11px 12px;margin:6px 0 12px;border:1px solid #cad3e1;border-radius:9px;outline:none;background:#fff;color:var(--text)}
+textarea{min-height:110px;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:#6ea4ed;box-shadow:0 0 0 3px rgba(23,105,224,.10)}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:#fff;text-decoration:none;cursor:pointer;text-align:center;line-height:1.2}
+.danger{background:var(--red)!important}
+.secondary{background:#64748b}
+.green{background:var(--green)}
+.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+label.check{display:flex;gap:8px;align-items:center;margin:8px 0}
+label.check input{width:auto;min-height:auto;margin:0}
+.table-wrap{width:100%;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+table{width:100%;min-width:700px;border-collapse:collapse}
+th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:#44506a;font-size:13px}
+td{overflow-wrap:anywhere}
+.badge{display:inline-block;max-width:100%;padding:5px 9px;border-radius:999px;background:var(--blue-soft);font-size:12px;line-height:1.25;overflow-wrap:anywhere}
+@media(max-width:720px){
+  .admin-nav-inner{min-height:54px;padding:0 10px;gap:8px;flex-wrap:wrap}
+  .admin-brand{min-height:54px;font-size:15px}
+  .admin-nav-toggle{display:block}
+  .admin-nav-links{display:none;width:100%;margin:0;padding:0 0 10px;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+  .admin-nav-links.is-open{display:grid}
+  .admin-nav-links a{width:100%;min-width:0;min-height:42px;padding:9px 8px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.06);font-size:13px}
+  .admin-nav-links .logout-link{border-color:rgba(255,160,160,.18)}
+  .wrap{padding:14px 9px 26px}
+  h1{font-size:23px;line-height:1.18}
+  h2{font-size:18px}
+  .card{padding:13px;border-radius:12px;margin-bottom:12px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .grid .card{margin-bottom:0;min-height:98px}
+  .stat{font-size:26px}
+  .actions{align-items:stretch}
+  .actions .btn,.actions button{flex:1 1 145px}
+  input,textarea,select{font-size:16px}
+  .table-wrap{margin:0 -3px;width:calc(100% + 6px);padding-bottom:2px}
+}
+@media(max-width:720px){
+  .applications-table{min-width:0;display:block}
+  .applications-table thead{display:none}
+  .applications-table tbody{display:grid;gap:10px}
+  .applications-table tr{display:block;padding:10px 11px;border:1px solid #e4eaf2;border-radius:12px;background:#fbfdff}
+  .applications-table td{display:grid;grid-template-columns:102px minmax(0,1fr);gap:10px;align-items:start;padding:7px 0;border-bottom:1px dashed #e6eaf0;font-size:13px;overflow-wrap:anywhere}
+  .applications-table td::before{content:attr(data-label);color:#6c7890;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.02em}
+  .applications-table td:last-child{border-bottom:0;padding-bottom:0}
+  .applications-table td:last-child .btn{width:100%;min-height:38px}
+}
+@media(max-width:390px){
+  .grid{gap:8px}
+  .grid .card{min-height:92px;padding:12px 10px}
+  .stat{font-size:24px}
+  .applications-table td{grid-template-columns:88px minmax(0,1fr);gap:8px}
+}
+</style>
+</head>
+<body>
+<nav class="admin-nav">
+  <div class="admin-nav-inner">
+    <a class="admin-brand" href="/admin" aria-label="IBW Admin Dashboard">🏦 <span>IBW Admin</span></a>
+    <button class="admin-nav-toggle" id="adminNavToggle" type="button" aria-label="Open admin menu" aria-expanded="false" aria-controls="adminNavLinks">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="admin-nav-links" id="adminNavLinks">
+      <a href="/admin">Dashboard</a>
+      <a href="/admin/wallets">Wallets</a>
+      <a href="/admin/settings">Settings</a>
+      <a class="logout-link" href="/logout">Logout</a>
+    </div>
+  </div>
+</nav>
+<main class="wrap">{% block content %}{% endblock %}</main>
+<script>
+(function () {
+  const toggle = document.getElementById("adminNavToggle");
+  const links = document.getElementById("adminNavLinks");
+  if (toggle && links) {
+    const closeMenu = () => {
+      links.classList.remove("is-open");
+      toggle.setAttribute("aria-expanded", "false");
+    };
+    toggle.addEventListener("click", () => {
+      const open = !links.classList.contains("is-open");
+      links.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    links.querySelectorAll("a").forEach((link) => link.addEventListener("click", closeMenu));
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 720) closeMenu();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenu();
+    });
+  }
+})();
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker.js").catch((error) => console.error("PWA service worker error:", error));
   });
 }
-</script></body></html>
+</script>
+</body>
+</html>
