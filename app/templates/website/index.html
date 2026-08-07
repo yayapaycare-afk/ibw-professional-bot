@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eaf4ff">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=15">
+  <link rel="stylesheet" href="/static/website/website.css?v=17">
 </head>
 <body>
   <div class="site-shell">
@@ -74,9 +74,8 @@
         <div class="hero">
           <div class="hero-copy">
             <span class="trust-pill">Trusted Business Wallet Services Across India</span>
-            <div class="hero-info-slider" id="heroInfoSlider" aria-label="Business wallet information">
-              <div class="hero-info-track" id="heroInfoTrack">
-                <article class="hero-info-slide hero-slide-benefits active" aria-roledescription="slide">
+            <div class="hero-info-stack" aria-label="Business wallet information">
+                <article class="hero-info-slide hero-slide-benefits" aria-roledescription="slide">
                   <div class="hero-slide-layout">
                     <div class="hero-slide-content">
                       <span class="hero-slide-kicker">BUSINESS WALLET KE FAYDE</span>
@@ -145,14 +144,6 @@
                     </div>
                   </div>
                 </article>
-              </div>
-              <button type="button" class="hero-slider-arrow hero-slider-prev" id="heroSliderPrev" aria-label="Previous banner">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
-              </button>
-              <button type="button" class="hero-slider-arrow hero-slider-next" id="heroSliderNext" aria-label="Next banner">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
-              </button>
-              <div class="hero-slider-dots" id="heroSliderDots" aria-label="Banner slides"></div>
             </div>
             <div class="hero-actions">
               <button type="button" class="primary" data-view="services">Apply Now</button>
@@ -634,115 +625,7 @@
   $("applicationId")?.addEventListener("keydown", (e) => { if (e.key === "Enter") trackApplication(); });
   document.addEventListener("click", (event) => { const target = event.target.closest("[data-copy-value]"); if (target) copyText(target.dataset.copyValue, target.dataset.copyMessage || "Copied ✅"); });
 
-  // Hero information banner slider — manual-first controls with a slow 15-second auto advance.
-  (() => {
-    const slider = $("heroInfoSlider");
-    const track = $("heroInfoTrack");
-    const dotsWrap = $("heroSliderDots");
-    const prevButton = $("heroSliderPrev");
-    const nextButton = $("heroSliderNext");
-    if (!slider || !track || !dotsWrap) return;
-    const slides = Array.from(track.querySelectorAll(".hero-info-slide"));
-    if (!slides.length) return;
 
-    const AUTO_DELAY = 15000;
-    let current = 0;
-    let timer = null;
-    let touchStartX = 0;
-    let userInteracting = false;
-
-    const dots = slides.map((_, index) => {
-      const dot = document.createElement("button");
-      dot.type = "button";
-      dot.className = "hero-slider-dot";
-      dot.setAttribute("aria-label", `Show banner ${index + 1}`);
-      dot.addEventListener("click", () => {
-        goTo(index);
-        restartAuto();
-      });
-      dotsWrap.appendChild(dot);
-      return dot;
-    });
-
-    function stopAuto() {
-      if (timer) window.clearTimeout(timer);
-      timer = null;
-    }
-
-    function scheduleAuto() {
-      stopAuto();
-      if (slides.length < 2 || userInteracting || document.hidden) return;
-      timer = window.setTimeout(() => {
-        goTo(current + 1);
-        scheduleAuto();
-      }, AUTO_DELAY);
-    }
-
-    function restartAuto() {
-      userInteracting = false;
-      scheduleAuto();
-    }
-
-    function goTo(index) {
-      current = (index + slides.length) % slides.length;
-      track.style.transform = `translateX(-${current * 100}%)`;
-      slides.forEach((slide, i) => slide.classList.toggle("active", i === current));
-      dots.forEach((dot, i) => {
-        const active = i === current;
-        dot.classList.toggle("active", active);
-        dot.setAttribute("aria-current", active ? "true" : "false");
-      });
-    }
-
-    function manualMove(direction) {
-      goTo(current + direction);
-      restartAuto();
-    }
-
-    prevButton?.addEventListener("click", () => manualMove(-1));
-    nextButton?.addEventListener("click", () => manualMove(1));
-
-    if (slides.length < 2) {
-      dotsWrap.classList.add("single");
-      prevButton?.classList.add("hidden");
-      nextButton?.classList.add("hidden");
-    }
-
-    slider.setAttribute("tabindex", "0");
-    slider.addEventListener("keydown", (event) => {
-      if (event.key === "ArrowLeft") { event.preventDefault(); manualMove(-1); }
-      if (event.key === "ArrowRight") { event.preventDefault(); manualMove(1); }
-    });
-
-    slider.addEventListener("mouseenter", () => { userInteracting = true; stopAuto(); });
-    slider.addEventListener("mouseleave", restartAuto);
-    slider.addEventListener("focusin", () => { userInteracting = true; stopAuto(); });
-    slider.addEventListener("focusout", (event) => {
-      if (!slider.contains(event.relatedTarget)) restartAuto();
-    });
-
-    slider.addEventListener("touchstart", (event) => {
-      userInteracting = true;
-      stopAuto();
-      touchStartX = event.touches[0]?.clientX || 0;
-    }, { passive: true });
-
-    slider.addEventListener("touchend", (event) => {
-      if (slides.length < 2) return restartAuto();
-      const endX = event.changedTouches[0]?.clientX || touchStartX;
-      const delta = endX - touchStartX;
-      if (Math.abs(delta) > 42) goTo(current + (delta < 0 ? 1 : -1));
-      restartAuto();
-    }, { passive: true });
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) stopAuto();
-      else restartAuto();
-    });
-
-    goTo(0);
-    scheduleAuto();
-  })();
 
   showView("home");
   loadBootstrap();
