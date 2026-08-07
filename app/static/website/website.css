@@ -566,3 +566,155 @@ body{
 .referral-page{max-width:720px;margin:0 auto;background:linear-gradient(180deg,#ff357e 0,#ff6a67 30%,#fff0e8 64%,#fff 100%);border-radius:28px;overflow:hidden;box-shadow:0 22px 60px rgba(91,34,62,.13);padding-bottom:22px}.referral-page-top{display:grid;grid-template-columns:42px 1fr auto;gap:10px;align-items:center;padding:16px 18px;color:#fff}.referral-page-top small{font-size:9px;letter-spacing:.12em;opacity:.84}.referral-page-top h2{margin:2px 0 0;font-size:21px}.referral-back{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.38);background:rgba(255,255,255,.12);color:#fff;font-size:31px;line-height:1;cursor:pointer}.referral-top-badge{padding:8px 11px;border-radius:999px;background:#fff;color:#e83275;font-weight:900;font-size:13px}.referral-reward-hero{min-height:315px;padding:22px 24px 10px;color:#fff;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(170px,.9fr);gap:12px;align-items:center;position:relative}.referral-reward-hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 72% 42%,rgba(255,232,189,.38),transparent 28%),radial-gradient(circle at 28% 65%,rgba(255,255,255,.16),transparent 27%);pointer-events:none}.referral-reward-copy{position:relative;z-index:2}.referral-reward-copy p{margin:0;font-size:34px;line-height:1}.referral-reward-copy p strong{font-size:62px;color:#ffe533;text-shadow:0 3px 0 rgba(160,66,0,.16)}.referral-reward-copy h3{font-size:23px;margin:13px 0 7px}.referral-reward-copy>span{display:block;font-size:13px;line-height:1.5;color:#fff3f6}.referral-reward-copy>b{display:inline-flex;margin-top:15px;padding:9px 13px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.38);font-size:12px}.referral-ticket-art{height:220px;display:grid;place-items:center;position:relative;z-index:2}.reward-glow{position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,235,177,.35);filter:blur(4px)}.referral-ticket-art svg{position:relative;width:190px;max-width:100%;fill:#6d7fff;stroke:#e9e9ff;stroke-width:4;stroke-linejoin:round;filter:drop-shadow(0 18px 25px rgba(117,41,103,.28))}.referral-invite-btn{display:block;width:calc(100% - 48px);margin:0 auto 18px;border:1px solid rgba(255,255,255,.65);border-radius:999px;padding:15px 20px;background:linear-gradient(180deg,#ff6f88,#ff377b);color:#fff;font-size:18px;font-weight:900;box-shadow:0 11px 22px rgba(208,40,100,.22),inset 0 2px 0 rgba(255,255,255,.32);cursor:pointer}.referral-stats-card,.referral-share-card,.referral-payout-card,.referral-rule-card,.referral-history-card{margin:14px 18px 0;border-radius:20px;background:rgba(255,255,255,.94);border:1px solid rgba(255,255,255,.75);box-shadow:0 10px 28px rgba(106,52,70,.08)}.referral-stats-card{padding:16px}.referral-card-title{display:flex;align-items:center;gap:8px;color:#ff376f;font-size:17px}.referral-card-title b{flex:1}.referral-stats-grid{display:grid;grid-template-columns:repeat(3,1fr);margin-top:14px;border-radius:16px;background:#fff;border:1px solid #f6e4e8;overflow:hidden}.referral-stats-grid>div{text-align:center;padding:17px 8px}.referral-stats-grid>div+div{border-left:1px solid #f3e3e8}.referral-stats-grid strong,.referral-stats-grid span{display:block}.referral-stats-grid strong{font-size:23px;color:#352533}.referral-stats-grid span{font-size:11px;color:#806b76;margin-top:4px}.referral-share-card,.referral-payout-card,.referral-rule-card,.referral-history-card{padding:17px}.referral-section-label{margin:0 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:900;color:#8f6f7b}.referral-link-box{width:100%;display:flex;align-items:center;gap:10px;border:1px solid #f0dce3;background:#fff7f9;border-radius:13px;padding:12px;color:#563c48;text-align:left;cursor:pointer}.referral-link-box span{flex:1;min-width:0;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.referral-link-box b{color:#e93675}.referral-share-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.ref-share{border:0;border-radius:12px;padding:11px 7px;font-weight:800;cursor:pointer}.whatsapp-share{background:#e7faee;color:#147a43}.telegram-share{background:#e9f5ff;color:#1378b7}.more-share{background:#f2ecff;color:#6d47ab}.referral-payout-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.referral-payout-head small,.referral-payout-head strong{display:block}.referral-payout-head small{font-size:9px;color:#9a7885;font-weight:850;letter-spacing:.08em}.referral-payout-head strong{font-size:29px;color:#e93170;margin-top:3px}.referral-payout-head>span{font-size:10px;padding:7px 9px;border-radius:999px;background:#fff2f6;color:#b43a67}.referral-payout-mini{display:flex;gap:9px;flex-wrap:wrap;margin:11px 0}.referral-payout-mini span{font-size:11px;padding:7px 9px;border-radius:10px;background:#faf4f7;color:#79616b}.referral-upi-label{display:grid;gap:6px;font-size:11px;font-weight:800;color:#6a5360}.referral-upi-label input{margin:0!important;border-color:#ecd8df!important}.referral-payout-btn{width:100%;border:0;border-radius:12px;padding:13px;background:linear-gradient(135deg,#ff477f,#f22f72);color:#fff;font-weight:900;margin-top:9px;cursor:pointer}.referral-payout-btn:disabled{opacity:.48;cursor:not-allowed}.referral-payout-card>small{display:block;color:#8b747e;font-size:10px;line-height:1.45;margin-top:8px}.referral-rule-card b{color:#e8316e}.referral-rule-card p{margin:7px 0 0;color:#715d66;font-size:12px;line-height:1.55}.referral-history-head{display:flex;justify-content:space-between;align-items:center}.referral-history-head button{border:0;background:transparent;color:#e8316e;font-weight:800;cursor:pointer}.referral-history-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #f2e7eb}.referral-history-row:last-child{border-bottom:0}.referral-history-row>div:first-child{display:grid;gap:3px;min-width:0}.referral-history-row b{font-size:13px}.referral-history-row small{color:#907984;font-size:10px}.referral-history-reward{text-align:right}.referral-history-reward strong{display:block;color:#e63270}.referral-history-status{display:inline-block;margin-top:4px;font-size:9px;padding:5px 7px;border-radius:999px;background:#fff1d8;color:#9a6500}.referral-history-status.earned{background:#eaf7ff;color:#226c9b}.referral-history-status.paid{background:#e5f8ed;color:#167344}.referral-empty{padding:18px;text-align:center;color:#89717c;font-size:12px}.referral-history-card .loading{padding:18px;box-shadow:none;border:0;background:transparent}
 
 @media(max-width:640px){.referral-home-banner{grid-template-columns:minmax(0,1fr) 126px;min-height:104px;border-radius:18px}.referral-home-copy{padding:14px 15px}.referral-home-copy small{font-size:8px}.referral-home-copy strong{font-size:18px;line-height:1.04}.referral-home-copy>span{font-size:10.5px;line-height:1.32;margin-top:5px}.referral-home-copy b{font-size:10px;margin-top:6px}.referral-visual{width:122px;height:87px}.referral-reward-chip{right:4px;top:5px;font-size:9px;padding:4px 6px}.referral-coin{width:23px;height:23px;font-size:10px}.coin-one{right:8px;bottom:6px;top:auto}.coin-two{left:3px;bottom:12px;width:19px;height:19px;font-size:8px}.referral-page{border-radius:21px}.referral-reward-hero{grid-template-columns:1fr;min-height:auto;padding:19px 20px 5px}.referral-reward-copy p{font-size:29px}.referral-reward-copy p strong{font-size:54px}.referral-reward-copy h3{font-size:20px}.referral-ticket-art{height:150px}.referral-ticket-art svg{width:150px}.reward-glow{width:130px;height:130px}.referral-invite-btn{width:calc(100% - 36px)}.referral-stats-card,.referral-share-card,.referral-payout-card,.referral-rule-card,.referral-history-card{margin-left:12px;margin-right:12px}.referral-share-actions{grid-template-columns:1fr 1fr 1fr}.referral-payout-head{align-items:flex-start}.referral-page-top{padding:13px 14px}}
+
+
+/* Referral page v20 — coded hand reward artwork, no external image asset */
+.referral-page{
+  background:
+    radial-gradient(circle at 90% 13%,rgba(255,190,120,.30),transparent 27%),
+    radial-gradient(circle at 8% 31%,rgba(255,113,157,.22),transparent 24%),
+    linear-gradient(180deg,#ff347b 0%,#ff596f 30%,#ffb28d 58%,#fff0df 76%,#fff 100%);
+}
+.referral-page-top{
+  background:rgba(255,48,116,.18);
+  border-bottom:1px solid rgba(255,255,255,.14);
+}
+.referral-reward-hero{
+  min-height:490px;
+  padding:26px 30px 8px;
+  grid-template-columns:1fr;
+  gap:4px;
+  align-items:start;
+}
+.referral-reward-hero:before{
+  background:
+    radial-gradient(circle at 50% 66%,rgba(255,231,180,.60),transparent 26%),
+    radial-gradient(circle at 80% 42%,rgba(255,255,255,.18),transparent 20%),
+    radial-gradient(circle at 14% 53%,rgba(255,255,255,.12),transparent 18%);
+}
+.referral-reward-copy{
+  max-width:600px;
+}
+.referral-reward-copy p{
+  font-size:35px;
+}
+.referral-reward-copy p strong{
+  font-size:66px;
+  color:#ffe33f;
+}
+.referral-reward-copy h3{
+  max-width:540px;
+}
+.referral-reward-copy>span{
+  max-width:610px;
+}
+.referral-hand-art{
+  height:280px;
+  margin-top:-6px;
+  display:grid;
+  place-items:center;
+  position:relative;
+  z-index:2;
+  overflow:visible;
+}
+.referral-hand-art .reward-glow{
+  width:250px;
+  height:230px;
+  background:radial-gradient(circle,rgba(255,231,176,.68) 0%,rgba(255,222,190,.28) 52%,transparent 72%);
+  filter:blur(1px);
+}
+.hand-reward-svg{
+  position:relative;
+  z-index:2;
+  width:min(390px,94%);
+  height:270px;
+  overflow:visible;
+  filter:drop-shadow(0 22px 26px rgba(132,58,94,.18));
+}
+.hand-reward-svg .hand-shadow{
+  fill:rgba(162,68,80,.14);
+  transform:translate(7px,8px);
+}
+.hand-reward-svg .hand-main,
+.hand-reward-svg .finger,
+.hand-reward-svg .thumb{
+  fill:url(#handSkin);
+  stroke:rgba(255,235,230,.82);
+  stroke-width:3;
+  stroke-linejoin:round;
+}
+.hand-reward-svg .ticket-outline{
+  fill:url(#ticketGlow);
+  stroke:#f5f2ff;
+  stroke-width:7;
+  stroke-linejoin:round;
+}
+.hand-reward-svg .ticket-fill{
+  fill:url(#ticketBody);
+  stroke:#7562ef;
+  stroke-width:2;
+}
+.hand-reward-svg .ticket-divider{
+  fill:none;
+  stroke:#d9dcff;
+  stroke-width:4;
+}
+.hand-reward-svg .ticket-rupee-ring{
+  fill:rgba(255,255,255,.08);
+  stroke:#eef0ff;
+  stroke-width:5;
+}
+.hand-reward-svg .ticket-rupee{
+  fill:#fff;
+  font-size:42px;
+  font-weight:900;
+  font-family:Arial,sans-serif;
+}
+.reward-spark{
+  position:absolute;
+  z-index:3;
+  color:#ffe24a;
+  text-shadow:0 3px 10px rgba(157,83,0,.22);
+  pointer-events:none;
+}
+.spark-a{left:12%;top:20%;font-size:27px}
+.spark-b{right:13%;top:34%;font-size:21px;color:#ffdf8b;transform:rotate(22deg)}
+.spark-c{left:18%;bottom:17%;font-size:15px;color:#fff1bf}
+.referral-invite-btn{
+  margin-top:0;
+}
+.referral-payout-btn.is-unavailable{
+  opacity:.72;
+  background:linear-gradient(135deg,#f28aab,#ee6e9c);
+}
+.referral-payout-btn.is-unavailable:active{
+  transform:scale(.995);
+}
+
+@media(max-width:640px){
+  .referral-reward-hero{
+    min-height:500px;
+    padding:20px 20px 0;
+  }
+  .referral-reward-copy p{
+    font-size:28px;
+  }
+  .referral-reward-copy p strong{
+    font-size:58px;
+  }
+  .referral-hand-art{
+    height:270px;
+    margin-top:0;
+  }
+  .hand-reward-svg{
+    width:min(355px,100%);
+    height:260px;
+  }
+  .referral-hand-art .reward-glow{
+    width:230px;
+    height:215px;
+  }
+  .spark-a{left:8%;top:18%}
+  .spark-b{right:8%;top:34%}
+}
+
