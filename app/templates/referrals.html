@@ -1,7 +1,15 @@
-{% extends 'base.html' %}{% block title %}Referral Rewards - IBW{% endblock %}{% block content %}
+{% extends 'base.html' %}
+{% block title %}Referral Rewards - IBW{% endblock %}
+{% block content %}
+
 <h1>Referral Rewards</h1>
-{% if request.query_params.get('paid') %}<p class="success">Referral payout marked as paid successfully.</p>{% endif %}
+
+{% if request.query_params.get('paid') %}
+<p class="success">Referral payout marked as paid successfully.</p>
+{% endif %}
+
 <p class="muted">₹100 reward is earned only after the referred user's first wallet application is completed. Payouts are paid manually to the requested UPI ID.</p>
+
 <div class="grid">
   <div class="card"><p class="stat">{{pending_referrals}}</p><span>Pending Referrals</span></div>
   <div class="card"><p class="stat">{{ready_rewards}}</p><span>Rewards Ready</span></div>
@@ -11,23 +19,74 @@
 
 <div class="card">
   <h2>UPI Payout Requests</h2>
-  <div class="table-wrap"><table><thead><tr><th>Referral Code</th><th>UPI ID</th><th>Amount</th><th>Status</th><th>Requested</th><th>Action</th></tr></thead><tbody>
-  {% for p,profile in payouts %}
-  <tr>
-    <td>{{profile.code}}</td><td><b>{{p.upi_id}}</b></td><td>₹{{p.amount}}</td><td><span class="badge">{{p.status}}</span></td>
-    <td>{{p.requested_at.strftime('%d %b %Y, %I:%M %p') if p.requested_at else '-'}}</td>
-    <td>{% if p.status != 'PAID' %}<form method="post" action="/admin/referrals/payout/{{p.id}}/paid" onsubmit="return confirm('Confirm UPI payment has been sent?')"><button class="green" type="submit">Mark Paid</button></form>{% else %}<span class="success">Paid ✓</span>{% endif %}</td>
-  </tr>
-  {% else %}<tr><td colspan="6" class="muted">No payout requests yet.</td></tr>{% endfor %}
-  </tbody></table></div>
+  <div class="table-wrap">
+    <table class="referral-mobile-table">
+      <thead>
+        <tr>
+          <th>Referral Code</th>
+          <th>UPI ID</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Requested</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p,profile in payouts %}
+        <tr>
+          <td data-label="Referral Code">{{profile.code}}</td>
+          <td data-label="UPI ID"><b>{{p.upi_id}}</b></td>
+          <td data-label="Amount">₹{{p.amount}}</td>
+          <td data-label="Status"><span class="badge">{{p.status}}</span></td>
+          <td data-label="Requested">{{p.requested_at.strftime('%d %b %Y, %I:%M %p') if p.requested_at else '-'}}</td>
+          <td data-label="Action">
+            {% if p.status != 'PAID' %}
+            <form method="post" action="/admin/referrals/payout/{{p.id}}/paid" onsubmit="return confirm('Confirm UPI payment has been sent?')">
+              <button class="green" type="submit">Mark Paid</button>
+            </form>
+            {% else %}
+            <span class="success">Paid ✓</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted">No payout requests yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <div class="card">
   <h2>Recent Referrals</h2>
-  <div class="table-wrap"><table><thead><tr><th>Code</th><th>Application ID</th><th>Wallet</th><th>Mobile</th><th>Reward</th><th>Status</th></tr></thead><tbody>
-  {% for r,profile,a,w in referrals %}
-  <tr><td>{{profile.code}}</td><td>{{r.application_code}}</td><td>{{w.name if w else 'Business Wallet'}}</td><td>{{r.referred_mobile}}</td><td>₹{{r.reward_amount}}</td><td><span class="badge">{{r.status}}</span></td></tr>
-  {% else %}<tr><td colspan="6" class="muted">No referral applications yet.</td></tr>{% endfor %}
-  </tbody></table></div>
+  <div class="table-wrap">
+    <table class="referral-mobile-table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Application ID</th>
+          <th>Wallet</th>
+          <th>Mobile</th>
+          <th>Reward</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r,profile,a,w in referrals %}
+        <tr>
+          <td data-label="Code">{{profile.code}}</td>
+          <td data-label="Application ID">{{r.application_code}}</td>
+          <td data-label="Wallet">{{w.name if w else 'Business Wallet'}}</td>
+          <td data-label="Mobile">{{r.referred_mobile}}</td>
+          <td data-label="Reward">₹{{r.reward_amount}}</td>
+          <td data-label="Status"><span class="badge">{{r.status}}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="muted">No referral applications yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
+
 {% endblock %}
