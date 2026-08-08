@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#eaf4ff">
   <meta name="description" content="India Business Wallets — trusted business wallet application and tracking portal.">
   <title>{{ business_name }} — Official Service Portal</title>
-  <link rel="stylesheet" href="/static/website/website.css?v=30">
+  <link rel="stylesheet" href="/static/website/website.css?v=32">
 
   <style id="ibw-v28-critical">
     /* v28: one-file critical visual fix */
@@ -581,6 +581,246 @@
     }
   </style>
 
+
+  <style id="ibw-referral-upi-issue-v31">
+    .referral-payout-help{display:none;margin:8px 0 10px;padding:9px 10px;border-radius:10px;font-size:12px;line-height:1.4;font-weight:700}
+    .referral-payout-help.show{display:block}
+    .referral-payout-help.issue{color:#8a4b10;background:#fff5df;border:1px solid #f4d59a}
+    .withdrawal-status.issue{color:#9a5b12!important;background:#fff2d8!important;border-color:#f1d095!important}
+  </style>
+
+  <style id="ibw-wallet-safety-v32">
+    .wallet-safety-pill{
+      color:#8f251e !important;
+      background:#fff7f6 !important;
+      border-color:#f2d3cf !important;
+    }
+
+    .wallet-safety-card{
+      position:relative;
+      overflow:hidden;
+      border:1px solid #d9e8f5;
+      border-radius:28px;
+      padding:26px 28px 28px;
+      background:
+        radial-gradient(circle at 92% 12%,rgba(255,236,233,.90),transparent 23%),
+        radial-gradient(circle at 8% 94%,rgba(221,241,255,.62),transparent 28%),
+        linear-gradient(145deg,#ffffff 0%,#f8fcff 58%,#f4faff 100%);
+      box-shadow:0 16px 42px rgba(34,86,132,.09);
+    }
+
+    .wallet-safety-card:before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:linear-gradient(112deg,rgba(255,255,255,.72),transparent 32% 68%,rgba(224,241,255,.38));
+    }
+
+    .wallet-safety-head{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 160px;
+      gap:18px;
+      align-items:center;
+      padding-bottom:18px;
+      margin-bottom:18px;
+      border-bottom:1px solid #e5edf4;
+    }
+
+    .wallet-safety-title-wrap{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+
+    .wallet-safety-alert{
+      display:grid;
+      place-items:center;
+      flex:0 0 auto;
+      width:46px;
+      height:46px;
+      border-radius:15px;
+      background:#fff0ee;
+      border:1px solid #f6d1cc;
+      font-size:25px;
+      line-height:1;
+      box-shadow:0 7px 16px rgba(192,58,43,.08);
+    }
+
+    .wallet-safety-title-wrap h1{
+      margin:0;
+      max-width:620px;
+      font-size:29px;
+      line-height:1.08;
+      font-weight:900;
+      letter-spacing:-.025em;
+      color:#c0392b;
+    }
+
+    .wallet-safety-visual{
+      justify-self:end;
+      width:150px;
+      padding:8px 8px 7px;
+      border-radius:18px;
+      text-align:center;
+      background:#fff;
+      border:1px solid #f1d9d5;
+      box-shadow:0 9px 20px rgba(36,77,112,.08);
+    }
+
+    .wallet-safety-visual svg{
+      display:block;
+      width:100%;
+      height:auto;
+    }
+
+    .wallet-safety-visual span{
+      display:inline-block;
+      margin-top:1px;
+      font-size:11px;
+      line-height:1.1;
+      font-weight:900;
+      color:#b93026;
+      letter-spacing:.01em;
+    }
+
+    .apk-phone{fill:#edf7ff;stroke:#315f86;stroke-width:4}
+    .apk-screen{fill:#fff;stroke:#b9d5e9;stroke-width:2}
+    .apk-speaker{fill:none;stroke:#315f86;stroke-width:3;stroke-linecap:round}
+    .apk-file{fill:#fff;stroke:#486d8b;stroke-width:3}
+    .apk-fold{fill:none;stroke:#486d8b;stroke-width:3;stroke-linejoin:round}
+    .apk-text{font:900 14px Arial,sans-serif;fill:#334c62}
+    .apk-ban-circle{fill:none;stroke:#d92d20;stroke-width:7}
+    .apk-ban-line{fill:none;stroke:#d92d20;stroke-width:8;stroke-linecap:round}
+
+    .wallet-safety-content{
+      position:relative;
+      z-index:1;
+      display:grid;
+      gap:12px;
+    }
+
+    .wallet-safety-content p{
+      margin:0;
+      padding:14px 15px;
+      border:1px solid #e2ecf4;
+      border-radius:16px;
+      background:rgba(255,255,255,.83);
+      color:#17324d;
+      font-size:15px;
+      line-height:1.58;
+      font-weight:600;
+      box-shadow:0 5px 14px rgba(49,92,129,.04);
+    }
+
+    .wallet-safety-content p:first-child{
+      border-left:4px solid #e34b3f;
+      background:#fff8f7;
+    }
+
+    .wallet-safety-content p:nth-child(2),
+    .wallet-safety-content p:nth-child(3){
+      border-left:4px solid #42a673;
+    }
+
+    .wallet-safety-content p:nth-child(4){
+      border-left:4px solid #d94a3d;
+      background:#fff9f8;
+    }
+
+    .wallet-safety-content p:last-child{
+      border-left:4px solid #3d86c9;
+      background:#f7fbff;
+    }
+
+    @media(max-width:720px){
+      .wallet-safety-card{
+        border-radius:24px;
+        padding:18px 17px 20px;
+      }
+
+      .wallet-safety-head{
+        grid-template-columns:minmax(0,1fr) 104px;
+        gap:10px;
+        padding-bottom:14px;
+        margin-bottom:14px;
+      }
+
+      .wallet-safety-title-wrap{
+        align-items:flex-start;
+        gap:9px;
+      }
+
+      .wallet-safety-alert{
+        width:38px;
+        height:38px;
+        border-radius:12px;
+        font-size:21px;
+      }
+
+      .wallet-safety-title-wrap h1{
+        font-size:21px;
+        line-height:1.12;
+      }
+
+      .wallet-safety-visual{
+        width:102px;
+        padding:5px 5px 4px;
+        border-radius:14px;
+      }
+
+      .wallet-safety-visual span{
+        font-size:9px;
+      }
+
+      .wallet-safety-content{
+        gap:9px;
+      }
+
+      .wallet-safety-content p{
+        padding:12px 12px;
+        border-radius:14px;
+        font-size:14px;
+        line-height:1.52;
+        font-weight:600;
+      }
+    }
+
+    @media(max-width:410px){
+      .wallet-safety-card{
+        padding:15px 13px 17px;
+        border-radius:21px;
+      }
+
+      .wallet-safety-head{
+        grid-template-columns:minmax(0,1fr) 86px;
+      }
+
+      .wallet-safety-alert{
+        width:34px;
+        height:34px;
+        font-size:19px;
+      }
+
+      .wallet-safety-title-wrap h1{
+        font-size:18px;
+      }
+
+      .wallet-safety-visual{
+        width:84px;
+      }
+
+      .wallet-safety-content p{
+        padding:11px;
+        font-size:13.5px;
+        line-height:1.5;
+      }
+    }
+  </style>
+
 </head>
 <body>
   <div class="site-shell">
@@ -697,77 +937,40 @@
         </div>
         <div class="hero">
           <div class="hero-copy">
-            <span class="trust-pill">Trusted Business Wallet Services Across India</span>
-            <div class="hero-info-stack" aria-label="Business wallet information">
-                <article class="hero-info-slide hero-slide-benefits" aria-roledescription="slide">
-                  <div class="hero-slide-layout">
-                    <div class="hero-slide-content">
-                      <span class="hero-slide-kicker">BUSINESS WALLET KE FAYDE</span>
-                      <h1>Receive More Business Payments with Confidence</h1>
-                      <p>Business Wallet open karke aap zyada business transactions receive aur manage kar sakte hain. Direct savings account mein baar-baar business payments receive karne se bank review ya freeze hone ka risk badh sakta hai. Business Wallet ke through payments receive karne se personal savings account par transaction load kam rehta hai aur business payments zyada organised tareeke se manage hote hain.</p>
-                      <div class="hero-slide-points">
-                        <span>More Business Transactions</span>
-                        <span>Organised Payment Records</span>
-                        <span>Lower Savings Account Load</span>
-                      </div>
-                      <strong class="hero-slide-line">More Transactions • Better Management • Safer Business Payments</strong>
-                    </div>
-                    <div class="hero-slide-visual benefit-visual" aria-hidden="true">
-                      <div class="visual-orbit visual-orbit-one"></div>
-                      <div class="visual-orbit visual-orbit-two"></div>
-                      <div class="visual-center-icon">
-                        <svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><path d="M16 9h5v6h-5a3 3 0 0 1 0-6Z"/><circle cx="16.5" cy="12" r=".7"/></svg>
-                      </div>
-                      <span class="visual-pill visual-pill-a">Business Payments</span>
-                      <span class="visual-pill visual-pill-b">Better Records</span>
-                    </div>
-                  </div>
-                </article>
+            <span class="trust-pill wallet-safety-pill">Wallet Safety Rules • Please Read Carefully</span>
+            <div class="wallet-safety-card" aria-label="Important Wallet Safety Instructions">
+              <div class="wallet-safety-head">
+                <div class="wallet-safety-title-wrap">
+                  <span class="wallet-safety-alert" aria-hidden="true">⚠️</span>
+                  <h1>Important Wallet Safety Instructions</h1>
+                </div>
 
-                <article class="hero-info-slide hero-slide-wallets" aria-roledescription="slide">
-                  <div class="hero-slide-layout">
-                    <div class="hero-slide-content">
-                      <span class="hero-slide-kicker">RECOMMENDED BUSINESS WALLETS</span>
-                      <h1>Choose a Business Wallet Built for Merchant Payments</h1>
-                      <p>Paytm Business, BharatPe Business aur Google Pay Business jaise merchant wallets business collections ke liye strong options hain. Inke through payments receive karne se repeated business transactions ko personal savings account se alag rakhna easier hota hai, aur cyber-report-related account issues ka exposure direct savings-account collections ke comparison mein kam ho sakta hai.</p>
-                      <div class="hero-slide-points">
-                        <span>Paytm Business</span>
-                        <span>BharatPe Business</span>
-                        <span>Google Pay Business</span>
-                      </div>
-                      <strong class="hero-slide-line">Handle More Customer Payments • Keep Business Collections Separate • Apply Today</strong>
-                    </div>
-                    <div class="hero-slide-visual wallet-visual" aria-label="Recommended business wallet logos">
-                      <div class="wallet-logo-stack">
-                        <div class="hero-wallet-logo"><img src="/static/miniapp/logos/paytm-business.png" alt="Paytm Business"></div>
-                        <div class="hero-wallet-logo"><img src="/static/miniapp/logos/bharatpe-business.png" alt="BharatPe Business"></div>
-                        <div class="hero-wallet-logo"><img src="/static/miniapp/logos/googlepay-business.png" alt="Google Pay Business"></div>
-                      </div>
-                      <span class="visual-caption">Recommended for business collections</span>
-                    </div>
-                  </div>
-                </article>
+                <div class="wallet-safety-visual" aria-label="Do not use third-party APK apps immediately after wallet activation">
+                  <svg viewBox="0 0 150 112" role="img" aria-label="Don't use .APK illustration">
+                    <rect x="28" y="10" width="62" height="92" rx="14" class="apk-phone"/>
+                    <rect x="38" y="22" width="42" height="57" rx="7" class="apk-screen"/>
+                    <path d="M54 17h11" class="apk-speaker"/>
+                    <rect x="78" y="45" width="52" height="36" rx="8" class="apk-file"/>
+                    <path d="M114 45v12h16" class="apk-fold"/>
+                    <text x="104" y="69" text-anchor="middle" class="apk-text">.APK</text>
+                    <circle cx="104" cy="63" r="38" class="apk-ban-circle"/>
+                    <path d="M78 37l52 52" class="apk-ban-line"/>
+                  </svg>
+                  <span>Don't use .APK</span>
+                </div>
+              </div>
 
-                <article class="hero-info-slide hero-slide-trust" aria-roledescription="slide">
-                  <div class="hero-slide-layout">
-                    <div class="hero-slide-content">
-                      <span class="hero-slide-kicker">WHY INDIA BUSINESS WALLETS?</span>
-                      <h1>Trusted Guidance for Your Business Wallet Journey</h1>
-                      <p>India Business Wallets has already assisted 5,000+ customers with business wallet applications. Get a simple online process, clear application tracking, secure document submission and dedicated customer support whenever you need help with your application.</p>
-                      <div class="hero-slide-points">
-                        <span>5,000+ Customers Assisted</span>
-                        <span>Secure Online Process</span>
-                        <span>Dedicated Customer Support</span>
-                      </div>
-                      <strong class="hero-slide-line">Trusted Service • Clear Process • Support You Can Reach</strong>
-                    </div>
-                    <div class="hero-slide-visual trust-visual" aria-hidden="true">
-                      <div class="trust-logo-shell"><img src="/static/miniapp/logos/ibw-logo.png" alt=""></div>
-                      <div class="trust-metric"><strong>5,000+</strong><span>Customers Assisted</span></div>
-                      <div class="trust-mini-row"><span>Secure</span><span>Trackable</span><span>Supported</span></div>
-                    </div>
-                  </div>
-                </article>
+              <div class="wallet-safety-content">
+                <p>Business Wallet open hone ke turant baad RushPay, MovPay ya kisi bhi third-party payment APK/App me login na karein.</p>
+
+                <p>✅ Wallet activate hone ke baad kam se kam 7–8 din tak sirf official Play Store se related app install karke normal aur limited use karein.</p>
+
+                <p>✅ 7–8 din complete hone ke baad hi kisi other 3rd Party platform/app me wallet use karna start karein.</p>
+
+                <p>🚫 Har Wallet me ak bot hota hai jo shuruwati dino me apke wallet gatividhiyo pe Nazar rkhta hai Jaldi login/use karne ki wajah se agar wallet Blocked, Restricted ya Disable hota hai, to uski responsibility India Business Wallets ki nahi hogi.</p>
+
+                <p>🔐 Apne wallet ko safe rakhne ke liye in instructions ko strictly follow karein.</p>
+              </div>
             </div>
             <div class="hero-actions">
               <button type="button" class="primary" data-view="services">Apply Now</button>
@@ -855,6 +1058,7 @@
               <span>Pending <b id="refPendingPayout">₹0</b></span>
               <span>Paid <b id="refPaidTotal">₹0</b></span>
             </div>
+            <p id="refPayoutHelp" class="referral-payout-help"></p>
             <div class="withdrawal-minimum-note"><span>₹</span><b>Minimum Withdrawal ₹100</b></div>
             <label class="referral-upi-label">UPI ID<input id="referralUpi" type="text" inputmode="email" autocomplete="off" placeholder="yourname@upi"></label>
             <button type="button" id="requestReferralPayout" class="referral-payout-btn">Withdraw to UPI</button>
@@ -1359,25 +1563,38 @@
       $("refCompleteCount").textContent = data.completed || 0;
       $("refAwardTotal").textContent = money(data.earned_total || 0);
       $("refAvailableReward").textContent = money(data.available_reward || 0);
-      $("refPendingPayout").textContent = money(data.pending_payout || 0);
+      const upiIssueAmount = Number(data.upi_issue_amount || 0);
+      $("refPendingPayout").textContent = money(data.pending_payout || upiIssueAmount || 0);
       $("refPaidTotal").textContent = money(data.paid_total || 0);
       const availableReward = Number(data.available_reward || 0);
       const pendingPayout = Number(data.pending_payout || 0);
       const paidTotal = Number(data.paid_total || 0);
       const payoutStatus = $("refPayoutStatus");
+      const payoutHelp = $("refPayoutHelp");
 
-      if (pendingPayout > 0) {
+      if (upiIssueAmount > 0) {
+        payoutStatus.textContent = "UPI Issue — Update UPI";
+        payoutStatus.className = "withdrawal-status issue";
+        if (payoutHelp) {
+          payoutHelp.textContent = data.upi_issue_message || "Payment could not be sent to your UPI ID. Please enter a working UPI ID and resubmit.";
+          payoutHelp.className = "referral-payout-help show issue";
+        }
+      } else if (pendingPayout > 0) {
         payoutStatus.textContent = "Withdrawal Pending";
         payoutStatus.className = "withdrawal-status pending";
+        if (payoutHelp) payoutHelp.className = "referral-payout-help";
       } else if (availableReward >= 100) {
         payoutStatus.textContent = "Ready to Withdraw";
         payoutStatus.className = "withdrawal-status ready";
+        if (payoutHelp) payoutHelp.className = "referral-payout-help";
       } else if (paidTotal > 0) {
         payoutStatus.textContent = "Paid Successfully";
         payoutStatus.className = "withdrawal-status paid";
+        if (payoutHelp) payoutHelp.className = "referral-payout-help";
       } else {
         payoutStatus.textContent = "Minimum ₹100";
         payoutStatus.className = "withdrawal-status";
+        if (payoutHelp) payoutHelp.className = "referral-payout-help";
       }
 
       if ($("referralLinkText")) $("referralLinkText").textContent = data.invite_link;
@@ -1386,8 +1603,9 @@
       payoutButton.disabled = false;
       payoutButton.dataset.availableReward = String(availableReward);
       payoutButton.dataset.pendingPayout = String(pendingPayout);
-      payoutButton.textContent = pendingPayout > 0 ? "Withdrawal Pending" : "Withdraw to UPI";
-      payoutButton.classList.toggle("is-unavailable", availableReward < 100 || pendingPayout > 0);
+      payoutButton.dataset.upiIssueAmount = String(upiIssueAmount);
+      payoutButton.textContent = upiIssueAmount > 0 ? "Update UPI & Resubmit" : (pendingPayout > 0 ? "Withdrawal Pending" : "Withdraw to UPI");
+      payoutButton.classList.toggle("is-unavailable", upiIssueAmount <= 0 && (availableReward < 100 || pendingPayout > 0));
       if ($("detailsLifetimeCompleted")) $("detailsLifetimeCompleted").textContent = data.completed || 0;
       if ($("detailsLifetimeAward")) $("detailsLifetimeAward").textContent = money(data.earned_total || 0);
       renderReferralDetails(data.details || []);
@@ -1416,12 +1634,13 @@
     const button = $("requestReferralPayout");
     const availableReward = Number(button.dataset.availableReward || state.referral?.available_reward || 0);
     const pendingPayout = Number(button.dataset.pendingPayout || state.referral?.pending_payout || 0);
+    const upiIssueAmount = Number(button.dataset.upiIssueAmount || state.referral?.upi_issue_amount || 0);
 
     if (pendingPayout > 0) {
       toast("Your payout request is already pending.");
       return;
     }
-    if (availableReward < 100) {
+    if (upiIssueAmount <= 0 && availableReward < 100) {
       toast("Minimum withdrawal amount is ₹100.");
       return;
     }
@@ -1441,7 +1660,7 @@
       $("refPayoutStatus").textContent = "Withdrawal Pending";
       $("refPayoutStatus").className = "withdrawal-status pending";
       button.textContent = "Withdrawal Pending";
-      toast(`Withdrawal request submitted for ${money(data.amount)} ✅`);
+      toast(data.resubmitted ? `UPI updated. Withdrawal request resubmitted for ${money(data.amount)} ✅` : `Withdrawal request submitted for ${money(data.amount)} ✅`);
       $("referralUpi").value = "";
       await loadReferrals();
     } catch (error) {
